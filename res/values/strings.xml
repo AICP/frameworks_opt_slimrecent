@@ -21,4 +21,7 @@
     <!-- Sim recents -->
     <string name="recents_multiwin_nolastapp">No recent apps, open one</string>
     <string name="recents_killapp_warning">Long press to kill app</string>
+
+    <!-- Sim recents on keyguard -->
+    <string name="slim_recent_keyguard">Unlock your device to view recents</string>
 </resources>
