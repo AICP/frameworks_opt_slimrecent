@@ -48,6 +48,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.Process;
+import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.support.v7.widget.LinearLayoutManager;
@@ -1330,16 +1331,16 @@ public class RecentPanelView {
         if (context == null) {
             return null;
         }
-        final ActivityManager am = (ActivityManager)
-                context.getSystemService(Context.ACTIVITY_SERVICE);
-        return getResizedBitmap(getThumbnail(am, persistentTaskId), context, scaleFactor);
+        return getResizedBitmap(getThumbnail(am, persistentTaskId, true), context, scaleFactor);
     }
 
     /**
      * Returns a task thumbnail from the activity manager
      */
-    public static Bitmap getThumbnail(ActivityManager activityManager, int taskId) {
-        ActivityManager.TaskThumbnail taskThumbnail = activityManager.getTaskThumbnail(taskId);
+    public static Bitmap getThumbnailOld(int taskId) {
+        final ActivityManager am = (ActivityManager)
+                context.getSystemService(Context.ACTIVITY_SERVICE);
+        ActivityManager.TaskThumbnail taskThumbnail = am.getTaskThumbnail(taskId);
         if (taskThumbnail == null) return null;
 
         Bitmap thumbnail = taskThumbnail.mainThumbnail;
@@ -1355,6 +1356,22 @@ public class RecentPanelView {
             }
         }
         return thumbnail;
+    }
+
+    public Bitmap getThumbnail(int taskId, boolean reducedResolution) {
+        if (ActivityManager.ENABLE_TASK_SNAPSHOTS) {
+            try {
+                ActivityManager.TaskSnapshot snapshot = ActivityManager.getService().getTaskSnapshot(taskId, reducedResolution);
+                if (snapshot != null) {
+                    return Bitmap.createHardwareBitmap(snapshot.getSnapshot());
+                }
+            } catch (RemoteException e) {
+                Log.w(TAG, "Failed to retrieve snapshot", e);
+            }
+            return null;
+        } else {
+            return getThumbnailOld(taskId);
+        }
     }
 
     // Resize and crop the task bitmap to the overlay values.
@@ -1399,6 +1416,7 @@ public class RecentPanelView {
         // scaled bitmap onto it.
         final Bitmap dest = Bitmap.createBitmap(thumbnailWidth, thumbnailHeight, Config.ARGB_8888);
         final Canvas canvas = new Canvas(dest);
+        canvas.setHwBitmapsInSwModeEnabled(true);
         canvas.drawBitmap(source, null, targetRect, paint);
 
         return dest;
