@@ -70,7 +70,7 @@ import com.android.systemui.SystemUIApplication;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.stackdivider.WindowManagerProxy;
-import com.android.systemui.statusbar.phone.PhoneStatusBar;
+import com.android.systemui.statusbar.phone.StatusBar;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -219,10 +219,11 @@ public class RecentPanelView {
                         int dockSide = WindowManagerProxy.getInstance().getDockSide();
                         if (dockSide != WindowManager.DOCKED_INVALID) {
                             try {
-                            // resize the docked stack to fullscreen to disable current multiwindow mode
-                                ActivityManagerNative.getDefault().resizeStack(
-                                                    ActivityManager.StackId.DOCKED_STACK_ID,
-                                                    null, true, true, false, -1);
+                            // resize the docked stack to fullscreen to disable current
+                            // multiwindow mode
+                            ActivityManagerNative.getDefault().resizeStack(
+                                    ActivityManager.StackId.DOCKED_STACK_ID,
+                                    null, true, true, false, -1);
                             } catch (Exception e) {}
                             wasDocked = true;
                         }
@@ -310,7 +311,7 @@ public class RecentPanelView {
                     if (appContext == null) appContext = mContext;
                     if (appContext instanceof SystemUIApplication) {
                         SystemUIApplication app = (SystemUIApplication) appContext;
-                        PhoneStatusBar statusBar = app.getComponent(PhoneStatusBar.class);
+                        StatusBar statusBar = app.getComponent(StatusBar.class);
                         if (statusBar != null) {
                             statusBar.showScreenPinningRequest(task.persistentTaskId, false);
                         }
@@ -1023,7 +1024,7 @@ public class RecentPanelView {
 
             final List<ActivityManager.RecentTaskInfo> recentTasks =
                     am.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
-                    ActivityManager.RECENT_IGNORE_HOME_STACK_TASKS
+                    ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
                             | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
                             | ActivityManager.RECENT_IGNORE_UNAVAILABLE
                             | ActivityManager.RECENT_INCLUDE_PROFILES,
@@ -1331,13 +1332,16 @@ public class RecentPanelView {
         if (context == null) {
             return null;
         }
-        return getResizedBitmap(getThumbnail(am, persistentTaskId, true), context, scaleFactor);
+        final ActivityManager am = (ActivityManager)
+                context.getSystemService(Context.ACTIVITY_SERVICE);
+        return getResizedBitmap(getThumbnail(persistentTaskId, true, context), context,
+                scaleFactor);
     }
 
     /**
      * Returns a task thumbnail from the activity manager
      */
-    public static Bitmap getThumbnailOld(int taskId) {
+    public static Bitmap getThumbnailOld(int taskId, Context context) {
         final ActivityManager am = (ActivityManager)
                 context.getSystemService(Context.ACTIVITY_SERVICE);
         ActivityManager.TaskThumbnail taskThumbnail = am.getTaskThumbnail(taskId);
@@ -1358,10 +1362,11 @@ public class RecentPanelView {
         return thumbnail;
     }
 
-    public Bitmap getThumbnail(int taskId, boolean reducedResolution) {
+    public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         if (ActivityManager.ENABLE_TASK_SNAPSHOTS) {
             try {
-                ActivityManager.TaskSnapshot snapshot = ActivityManager.getService().getTaskSnapshot(taskId, reducedResolution);
+                ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
+                        .getTaskSnapshot(taskId, reducedResolution);
                 if (snapshot != null) {
                     return Bitmap.createHardwareBitmap(snapshot.getSnapshot());
                 }
@@ -1370,7 +1375,7 @@ public class RecentPanelView {
             }
             return null;
         } else {
-            return getThumbnailOld(taskId);
+            return getThumbnailOld(taskId, context);
         }
     }
 

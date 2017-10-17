@@ -81,7 +81,7 @@ import com.android.systemui.R;
 import com.android.systemui.RecentsComponent;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.recents.misc.Utilities;
-import com.android.systemui.statusbar.BaseStatusBar;
+import com.android.systemui.statusbar.phone.StatusBar;
 
 /**
  * Our main recents controller.
@@ -170,7 +170,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)) {
                 String reason = intent.getStringExtra("reason");
                 if (reason != null &&
-                        !reason.equals(BaseStatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS)) {
+                        !reason.equals(StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS)) {
                     hideRecents(false);
                 }
                 if (DEBUG) Log.d(TAG, "braodcast system dialog");
@@ -461,7 +461,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             // no last app for this session, let's search in the previous session recent apps
             List<ActivityManager.RecentTaskInfo> recentTasks =
                     am.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
-                    ActivityManager.RECENT_IGNORE_HOME_STACK_TASKS
+                    ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
                             | ActivityManager.RECENT_INGORE_DOCKED_STACK_TOP_TASK
                             | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
                             | ActivityManager.RECENT_IGNORE_UNAVAILABLE
@@ -690,7 +690,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private void showRecents() {
         if (DEBUG) Log.d(TAG, "in animation starting");
         mIsShowing = true;
-        sendCloseSystemWindows(BaseStatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS);
+        sendCloseSystemWindows(StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS);
         mAnimationState = ANIMATION_STATE_NONE;
         mHandler.removeCallbacks(mRecentRunnable);
         mWindowManager.addView(mParentView, generateLayoutParameter());
@@ -1205,7 +1205,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mAm.getMemoryInfo(memInfo);
             int available = (int)(memInfo.availMem / 1048576L);
             int max = (int)(getTotalMemory() / 1048576L);
-            mMemText.setText(String.format(mContext.getResources().getString(R.string.recents_free_ram),available));
+            mMemText.setText(mContext.getResources().getString(R.string.slim_recents_free_ram,
+                    available));
             mMemBar.setMax(max);
             mMemBar.setProgress(available);
             mMemBar.getProgressDrawable().setColorFilter(mMembarcolor == 0x00ffffff
