@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014-2017 SlimRoms Project
  * Author: Lars Greiss - email: kufikugel@googlemail.com
+ * Copyright (C) 2017 ABC rom
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -19,7 +20,7 @@ package com.android.systemui.slimrecent;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.content.pm.ActivityInfo;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -82,7 +83,7 @@ public class AppIconLoader {
      * @params packageName
      * @params callback
      */
-    protected void loadAppIcon(ResolveInfo info, String identifier,
+    protected void loadAppIcon(ActivityInfo info, String identifier,
             IconCallback callback, float scaleFactor) {
         final BitmapDownloaderTask task =
                 new BitmapDownloaderTask(callback, mContext, scaleFactor, identifier);
@@ -92,7 +93,7 @@ public class AppIconLoader {
     /**
      * Loads the actual app icon.
      */
-    private static Drawable getAppIcon(ResolveInfo info, Context context, float scaleFactor) {
+    private static Drawable getAppIcon(ActivityInfo info, Context context, float scaleFactor) {
         if (context == null) {
             return null;
         }
@@ -116,11 +117,11 @@ public class AppIconLoader {
     }
 
     private static Drawable getFullResIcon(Context context,
-            ResolveInfo info, PackageManager packageManager) {
+            ActivityInfo info, PackageManager packageManager) {
         Resources resources;
         try {
             resources = packageManager.getResourcesForApplication(
-                    info.activityInfo.applicationInfo);
+                    info.applicationInfo);
         } catch (PackageManager.NameNotFoundException e) {
             resources = null;
         }
@@ -128,13 +129,13 @@ public class AppIconLoader {
             int iconId = 0;
             if (IconPackHelper.getInstance(context).isIconPackLoaded()){
                 iconId = IconPackHelper.getInstance(context)
-                        .getResourceIdForActivityIcon(info.activityInfo);
+                        .getResourceIdForActivityIcon(info);
                 if (iconId != 0) {
                     return IconPackHelper.getInstance(context)
                             .getIconPackResources().getDrawable(iconId);
                 }
             }
-            iconId = info.activityInfo.getIconResource();
+            iconId = info.getIconResource();
             if (iconId != 0) {
                 return getFullResIcon(context, resources, iconId);
             }
@@ -181,7 +182,7 @@ public class AppIconLoader {
     /**
      * AsyncTask loader for the app icon.
      */
-    private static class BitmapDownloaderTask extends AsyncTask<ResolveInfo, Void, Drawable> {
+    private static class BitmapDownloaderTask extends AsyncTask<ActivityInfo, Void, Drawable> {
 
         private Drawable mAppIcon;
 
@@ -204,8 +205,8 @@ public class AppIconLoader {
         }
 
         @Override
-        protected Drawable doInBackground(ResolveInfo... params) {
-            Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
+        protected Drawable doInBackground(ActivityInfo... params) {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + 1);
             if (isCancelled() || rContext == null) {
                 return null;
             }
@@ -232,7 +233,7 @@ public class AppIconLoader {
             }
             if (bitmap != null && context != null && bitmap instanceof BitmapDrawable) {
                 // Put our bitmap intu LRU cache for later use.
-                CacheController.getInstance(context)
+                CacheController.getInstance(context, null)
                         .addBitmapToMemoryCache(mLRUCacheKey, (BitmapDrawable)bitmap);
             }
         }
