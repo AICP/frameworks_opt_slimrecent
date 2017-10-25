@@ -23,7 +23,6 @@
         android:id="@+id/card"
         android:layout_width="match_parent"
         android:padding="@dimen/recent_card_padding"
-        app:cardBackgroundColor="@android:color/holo_red_dark"
         android:layout_marginLeft="@dimen/recent_card_layout_margin_horizontal"
         android:layout_marginRight="@dimen/recent_card_layout_margin_horizontal"
         android:layout_marginTop="@dimen/recent_card_layout_marginTop"
@@ -68,6 +67,7 @@
                     <TextView
                         android:id="@+id/app_name"
                         android:gravity="center_vertical"
+                        android:maxLines="2"
                         android:layout_weight="2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent" />
