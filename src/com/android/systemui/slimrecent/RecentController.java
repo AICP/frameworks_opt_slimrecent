@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014-2017 SlimRoms Project
  * Author: Lars Greiss - email: kufikugel@googlemail.com
+ * Copyright (C) 2017 ABC rom
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -21,12 +22,15 @@ import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.ActivityManager.MemoryInfo;
 import android.app.ActivityOptions;
+import android.app.IActivityManager;
 import android.app.KeyguardManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks2;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -45,6 +49,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.UserHandle;
@@ -73,15 +78,20 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
+import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.android.systemui.R;
-import com.android.systemui.RecentsComponent;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.recents.misc.Utilities;
+import com.android.systemui.statusbar.CommandQueue;
+import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
+
+import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
 
 /**
  * Our main recents controller.
@@ -94,10 +104,9 @@ import com.android.systemui.statusbar.phone.StatusBar;
  * are handled here.
  */
 public class RecentController implements RecentPanelView.OnExitListener,
-        RecentPanelView.OnTasksLoadedListener {
+        RecentPanelView.OnTasksLoadedListener, CommandQueue.Callbacks {
 
     private static final String TAG = "SlimRecentsController";
-    private static final boolean DEBUG = false;
 
     // Animation control values.
     private static final int ANIMATION_STATE_NONE = 0;
@@ -106,10 +115,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
     // Animation state.
     private int mAnimationState = ANIMATION_STATE_NONE;
 
-    public static float DEFAULT_SCALE_FACTOR = 1.0f;
-
     private Configuration mConfiguration;
     private Context mContext;
+    private ActivityManager mAm;
+    private IActivityManager mIam;
     private WindowManager mWindowManager;
     private IWindowManager mWindowManagerService;
 
@@ -117,7 +126,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private boolean mIsToggled;
     private boolean mIsPreloaded;
 
-    protected long mLastToggleTime;
+    private boolean mIsUserSetup;
 
     private boolean mExpandAnimation = false;
 
@@ -131,7 +140,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private ImageView mKeyguardImage;
     private TextView mKeyguardText;
 
-    private int mLayoutDirection;
+    private int mLayoutDirection = -1;
     private int mMainGravity;
     private int mUserGravity;
     private int mPanelColor;
@@ -140,13 +149,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
     TextView mMemText;
     ProgressBar mMemBar;
     boolean enableMemDisplay;
-    private ActivityManager mAm;
     private int mMembarcolor;
     private int mMemtextcolor;
 
     private boolean mMemBarLongClickToClear;
 
-    private float mScaleFactor = DEFAULT_SCALE_FACTOR;
+    private float mScaleFactor;
 
     private boolean mAicpEmptyView;
 
@@ -159,33 +167,41 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private float mAppSidebarScaleFactor = AppSidebar.DEFAULT_SCALE_FACTOR;
     private boolean mAppSidebarOpenSimultaneously;
 
-    private Handler mHandler = new Handler();
+    private ArrayList<TaskDescription> mTasks = new ArrayList<>();
+    private boolean mIsTopTaskInForeground;
+
+    private Handler mHandler;
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            if (DEBUG) Log.v(TAG, "onReceive: " + intent);
             final String action = intent.getAction();
             // Screen goes off or system dialogs should close.
             // Get rid of our recents screen
             if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)) {
                 String reason = intent.getStringExtra("reason");
                 if (reason != null &&
-                        !reason.equals(StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS)) {
+                        !reason.equals(SYSTEM_DIALOG_REASON_RECENT_APPS)) {
                     hideRecents(false);
                 }
-                if (DEBUG) Log.d(TAG, "braodcast system dialog");
             } else if (Intent.ACTION_SCREEN_OFF.equals(action)){
                 hideRecents(true);
-                if (DEBUG) Log.d(TAG, "broadcast screen off");
             }
         }
     };
 
-    public RecentController(Context context, int layoutDirection) {
+    public RecentController(Context context) {
         mContext = context;
-        mLayoutDirection = layoutDirection;
+        mLayoutDirection = getLayoutDirection();
+        mScaleFactor = Settings.System.getIntForUser(
+                mContext.getContentResolver(), Settings.System.RECENT_PANEL_SCALE_FACTOR, 115,
+                UserHandle.USER_CURRENT) / 100.0f;
 
-        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
+        mHandler = new Handler();
+        mAm = (ActivityManager)
+                context.getSystemService(Context.ACTIVITY_SERVICE);
+        mIam = ActivityManagerNative.getDefault();
+        mWindowManager = (WindowManager)
+                mContext.getSystemService(Context.WINDOW_SERVICE);
         mWindowManagerService = WindowManagerGlobal.getWindowManagerService();
 
         /**
@@ -290,6 +306,39 @@ public class RecentController implements RecentPanelView.OnExitListener,
         // Settings observer
         new SettingsObserver(mHandler).observe();
         new KeepOpenSettingsObserver(mHandler).observe();
+
+        mContext.registerComponentCallbacks(new ComponentCallback());
+    }
+
+    public void removeSbCallbacks() {
+        SysUiServiceProvider.getComponent(mContext, CommandQueue.class)
+                .removeCallbacks(this);
+    }
+
+    public void addSbCallbacks() {
+        SysUiServiceProvider.getComponent(mContext, CommandQueue.class)
+                .addCallbacks(this);
+    }
+
+    public void evictAllCaches() {
+        ThumbnailsCacheController.getInstance(mContext).clearCache();
+        CacheController.getInstance(mContext, null).clearCache();
+        InfosCacheController.getInstance(mContext).clearCache();
+    }
+
+    public void trimCaches(boolean lowMem) {
+        int maxMemory;
+        if (lowMem) {
+            maxMemory = ThumbnailsCacheController.getInstance(mContext).getMaxMemory();
+            ThumbnailsCacheController.getInstance(mContext).trimToSize(maxMemory / 6);
+            maxMemory = CacheController.getInstance(mContext, null).getMaxMemory();
+            CacheController.getInstance(mContext, null).trimToSize(maxMemory / 8);
+            InfosCacheController.getInstance(mContext).trimToSize(10);
+        } else {
+            maxMemory = CacheController.getInstance(mContext, null).getMaxMemory();
+            CacheController.getInstance(mContext, null).trimToSize(maxMemory / 6);
+            InfosCacheController.getInstance(mContext).trimToSize(20);
+        }
     }
 
     /**
@@ -370,10 +419,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mEmptyRecentView.setRotation(0);
         }
 
-        // Notify panel view about new main gravity.
-        if (mRecentPanelView != null) {
-            mRecentPanelView.setMainGravity(mMainGravity);
-        }
 
         // Set custom background color (or reset to default, as the case may be
         if (mRecentContent != null) {
@@ -399,23 +444,33 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     }
 
-    /**
-     * External call. Toggle recents panel.
-     */
-    public void toggleRecents(Display display, int layoutDirection, View statusBarView) {
-        if (DEBUG) Log.d(TAG, "toggle recents panel");
-        if (mLayoutDirection != layoutDirection) {
-            mLayoutDirection = layoutDirection;
+    private int getLayoutDirection() {
+        final Configuration currentConfig = mContext.getResources()
+                .getConfiguration();
+        Locale locale = currentConfig.locale;
+        int layoutDirection = TextUtils.getLayoutDirectionFromLocale(locale);
+        return layoutDirection;
+    }
+
+    @Override
+    public void toggleRecentApps() {
+        if (!mIsUserSetup) {
+            return;
+        }
+        toggle();
+    }
+
+    private void toggle() {
+        int ld = getLayoutDirection();
+        if (mLayoutDirection != ld) {
+            mLayoutDirection = ld;
             setGravityAndImageResources();
         }
-
-        long elapsedTime = SystemClock.elapsedRealtime() - mLastToggleTime;
 
         if (mAnimationState == ANIMATION_STATE_NONE) {
             if (!isShowing()) {
                 mIsToggled = true;
                 if (mRecentPanelView.isTasksLoaded()) {
-                    if (DEBUG) Log.d(TAG, "tasks loaded - showRecents()");
                     showRecents();
                 } else if (!mIsPreloaded) {
                     // This should never happen due that preload should
@@ -424,10 +479,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     // Due that mIsToggled is true preloader will open the recent
                     // screen as soon the preload is finished and the listener
                     // notifies us that we are ready.
-                    if (DEBUG) Log.d(TAG, "preload was not called - do it now");
-                    preloadRecentTasksList();
+                    preloadRecentApps();
                 }
-                mLastToggleTime = SystemClock.elapsedRealtime();
             } else {
                 hideRecents(false);
             }
@@ -439,34 +492,33 @@ public class RecentController implements RecentPanelView.OnExitListener,
         ActivityManager.RunningTaskInfo runningTask = ssp.getRunningTask();
         int createMode = ActivityManager.DOCKED_STACK_CREATE_MODE_TOP_OR_LEFT;
         if (ssp.startTaskInDockedMode(runningTask.id, createMode)) {
-            openLastApptoBottom();
+            openLastAppPanelToggle();
             if (!isShowing()) {
                 showRecents();
             }
         }
     }
 
-    public void openLastApptoBottom() {
+    protected void startTaskinMultiWindow(int id) {
+        SystemServicesProxy ssp = SystemServicesProxy.getInstance(mContext);
+        int createMode = ActivityManager.DOCKED_STACK_CREATE_MODE_TOP_OR_LEFT;
+        if (ssp.startTaskInDockedMode(id, createMode)) {
+            openLastApptoBottom();
+        }
+   }
+
+    private void openLastApptoBottom() {
 
         int taskid = 0;
         boolean doWeHaveAtask = true;
 
-        final ActivityManager am =
-                (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        ActivityManager.RunningTaskInfo lastTask = getLastTask(am);
+        ActivityManager.RunningTaskInfo lastTask = getLastTask(mAm);
         if (lastTask != null) {
-            // user already ran another app in this session, we can dock it to the other side
+            // available task in this stack, we can dock it to the other side
             taskid = lastTask.id;
         } else {
-            // no last app for this session, let's search in the previous session recent apps
-            List<ActivityManager.RecentTaskInfo> recentTasks =
-                    am.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
-                    ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
-                            | ActivityManager.RECENT_INGORE_DOCKED_STACK_TOP_TASK
-                            | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
-                            | ActivityManager.RECENT_IGNORE_UNAVAILABLE
-                            | ActivityManager.RECENT_INCLUDE_PROFILES,
-                            UserHandle.CURRENT.getIdentifier());
+            // let's search in recent apps list
+            List<ActivityManager.RecentTaskInfo> recentTasks = getRecentTasks();
             if (recentTasks != null && recentTasks.size() > 1) {
                 ActivityManager.RecentTaskInfo recentInfo = recentTasks.get(1);
                 taskid = recentInfo.persistentId;
@@ -477,21 +529,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
         if (doWeHaveAtask) {
             try {
-                ActivityOptions options = ActivityOptions.makeBasic();
-                ActivityManagerNative.getDefault()
-                        .startActivityFromRecents(taskid, options.toBundle());
+                mIam.startActivityFromRecents(taskid, getAnimation(mContext).toBundle());
             } catch (RemoteException e) {}
-        } else {
-            Toast noLastapp = Toast.makeText(mContext,
-                    R.string.recents_multiwin_nolastapp, Toast.LENGTH_LONG);
-            noLastapp.show();
         }
     }
 
     private ActivityManager.RunningTaskInfo getLastTask(final ActivityManager am) {
         final String defaultHomePackage = resolveCurrentLauncherPackage();
         List<ActivityManager.RunningTaskInfo> tasks = am.getRunningTasks(5);
-
         for (int i = 1; i < tasks.size(); i++) {
             String packageName = tasks.get(i).topActivity.getPackageName();
             if (!packageName.equals(defaultHomePackage)
@@ -503,14 +548,70 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return null;
     }
 
-    public void openOnDraggedApptoOtherSide(int taskid) {
-        final ActivityManager am =
-                (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
-        try {
-            ActivityOptions options = ActivityOptions.makeBasic();
-            ActivityManagerNative.getDefault()
-                    .startActivityFromRecents(taskid, options.toBundle());
-        } catch (RemoteException e) {}
+    private List<ActivityManager.RecentTaskInfo> getRecentTasks() {
+        return mAm.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
+                ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
+                | ActivityManager.RECENT_INGORE_DOCKED_STACK_TOP_TASK
+                | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
+                | ActivityManager.RECENT_IGNORE_UNAVAILABLE
+                | ActivityManager.RECENT_INCLUDE_PROFILES,
+                UserHandle.CURRENT.getIdentifier());
+    }
+
+    protected void addTasks(TaskDescription task) {
+        mTasks.add(task);
+    }
+
+    protected void resetTasks() {
+        mTasks.clear();
+    }
+
+    protected void isTopTaskInForeground(boolean toptask) {
+        mIsTopTaskInForeground = toptask;
+    }
+
+    private void openLastAppPanelToggle() {
+        if (mTasks != null && !mTasks.isEmpty()) {
+            if (!mIsTopTaskInForeground) {
+                startApplication(mTasks.get(0));
+            } else if (mTasks.size() > 1) {
+                startApplication(mTasks.get(1));
+            }
+        }
+    }
+
+    protected void startApplication(TaskDescription td) {
+        // Starting app is requested by the user.
+        // Move it to foreground or start it with custom animation.
+        if (td.taskId >= 0) {
+            // This is an active task; it should just go to the foreground.
+            mAm.moveTaskToFront(td.taskId, ActivityManager.MOVE_TASK_WITH_HOME,
+                    getAnimation(mContext).toBundle());
+        } else {
+            //startContainerActivity(mContext); // see notes
+            final Intent intent = td.intent;
+            intent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY
+                    | Intent.FLAG_ACTIVITY_TASK_ON_HOME
+                    | Intent.FLAG_ACTIVITY_NEW_TASK);
+            try {
+                mContext.startActivityAsUser(intent, getAnimation(mContext).toBundle(),
+                        new UserHandle(UserHandle.USER_CURRENT));
+            } catch (SecurityException e) {
+                Log.e(TAG, "Recents does not have the permission to launch " + intent, e);
+            } catch (ActivityNotFoundException e) {
+                Log.e(TAG, "Error launching activity " + intent, e);
+            }
+        }
+    }
+
+    /**
+     * Get custom animation for app starting.
+     * @return Bundle
+     */
+    protected static ActivityOptions getAnimation(Context context) {
+        return ActivityOptions.makeCustomAnimation(context,
+                com.android.internal.R.anim.recent_enter,
+                com.android.internal.R.anim.recent_screen_fade_out);
     }
 
     private String resolveCurrentLauncherPackage() {
@@ -524,29 +625,38 @@ public class RecentController implements RecentPanelView.OnExitListener,
     /**
      * External call. Preload recent tasks.
      */
-    public void preloadRecentTasksList() {
-        if (mRecentPanelView != null) {
-            if (DEBUG) Log.d(TAG, "preloading recents");
-            mIsPreloaded = true;
-            setSystemUiVisibilityFlags();
-            mRecentPanelView.setCancelledByUser(false);
-            mRecentPanelView.loadTasks();
+    @Override
+    public void preloadRecentApps() {
+        if (!mIsUserSetup) {
+            return;
         }
+        // Post this to ensure that we don't block the touch feedback
+        // on the nav bar button which triggers this.
+        mHandler.post(() -> {
+           if (mRecentPanelView != null) {
+                mIsPreloaded = true;
+                setSystemUiVisibilityFlags();
+                mRecentPanelView.setCancelledByUser(false);
+                mRecentPanelView.loadTasks();
+            }
+        });
     }
 
     /**
      * External call. Cancel preload recent tasks.
      */
-    public void cancelPreloadingRecentTasksList() {
+    @Override
+    public void cancelPreloadRecentApps() {
+        if (!mIsUserSetup) {
+            return;
+        }
         if (mRecentPanelView != null && !isShowing()) {
-            if (DEBUG) Log.d(TAG, "cancel preloading recents");
             mIsPreloaded = false;
             mRecentPanelView.setCancelledByUser(true);
         }
     }
 
-    public void closeRecents() {
-        if (DEBUG) Log.d(TAG, "closing recents panel");
+    protected void closeRecents() {
         hideRecents(false);
     }
 
@@ -601,12 +711,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         params.gravity |= Gravity.CENTER_VERTICAL;
 
         // Set animation for our recent window.
-        if ((mMainGravity == Gravity.LEFT) != forAppSidebar) {
-            params.windowAnimations =
-                    com.android.internal.R.style.Animation_RecentScreen_Left;
-        } else {
-            params.windowAnimations = com.android.internal.R.style.Animation_RecentScreen;
-        }
+        params.windowAnimations =
+                com.android.internal.R.style.Animation_SlimRecentScreen;
 
         // This title is for debugging only. See: dumpsys window
         params.setTitle(forAppSidebar ? "RecentAppSidebar" : "RecentControlPanel");
@@ -658,22 +764,29 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return mIsShowing;
     }
 
+    @Override
+    public void hideRecentApps(boolean triggeredFromAltTab, boolean triggeredFromHomeKey) {
+        hideRecents(triggeredFromHomeKey);
+    }
+
     // Hide the recent window.
     public boolean hideRecents(boolean forceHide) {
+        if (!mIsUserSetup) {
+            return false;
+        }
         if (isShowing()) {
             mIsPreloaded = false;
             mIsToggled = false;
             mIsShowing = false;
-            mRecentPanelView.setTasksLoaded(false);
+            // stop async task if still loading
+            mRecentPanelView.setCancelledByUser(true);
             if (forceHide) {
-                if (DEBUG) Log.d(TAG, "force hide recent window");
                 mAnimationState = ANIMATION_STATE_NONE;
                 mHandler.removeCallbacks(mRecentRunnable);
                 mWindowManager.removeViewImmediate(mParentView);
                 removeSidebarViewImmediate();
                 return true;
             } else if (mAnimationState != ANIMATION_STATE_OUT) {
-                if (DEBUG) Log.d(TAG, "out animation starting");
                 mAnimationState = ANIMATION_STATE_OUT;
                 mHandler.removeCallbacks(mRecentRunnable);
                 mHandler.postDelayed(mRecentRunnable, mContext.getResources().getInteger(
@@ -688,9 +801,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     // Show the recent window.
     private void showRecents() {
-        if (DEBUG) Log.d(TAG, "in animation starting");
         mIsShowing = true;
-        sendCloseSystemWindows(StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS);
+        sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS);
         mAnimationState = ANIMATION_STATE_NONE;
         mHandler.removeCallbacks(mRecentRunnable);
         mWindowManager.addView(mParentView, generateLayoutParameter());
@@ -703,7 +815,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             restrictionMsg = mContext.getString(R.string.slim_recent_keyguard);
         }
         try {
-            if (ActivityManagerNative.getDefault().isInLockTaskMode()) {
+            if (mIam.isInLockTaskMode()) {
                 restrictionMsg = mContext.getString(R.string.slim_recent_pinned);
             }
         } catch (RemoteException e) {}
@@ -718,12 +830,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     }
 
-    public static void sendCloseSystemWindows(String reason) {
+    protected static void sendCloseSystemWindows(String reason) {
         if (ActivityManagerNative.isSystemReady()) {
             try {
                 ActivityManagerNative.getDefault().closeSystemDialogs(reason);
-            } catch (RemoteException e) {
-            }
+            } catch (RemoteException e) {}
         }
     }
 
@@ -737,7 +848,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
     @Override
     public void onTasksLoaded() {
         if (mIsToggled && !isShowing()) {
-            if (DEBUG) Log.d(TAG, "onTasksLoaded....showRecents()");
             showRecents();
         }
     }
@@ -748,9 +858,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private final Runnable mRecentRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mAnimationState == ANIMATION_STATE_OUT) {
-                if (DEBUG) Log.d(TAG, "out animation finished");
-            }
             mAnimationState = ANIMATION_STATE_NONE;
         }
     };
@@ -778,13 +885,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     Settings.System.RECENT_PANEL_EXPANDED_MODE),
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.RECENT_PANEL_SHOW_TOPMOST),
-                    false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_BG_COLOR),
-                    false, this, UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.RECENT_SHOW_RUNNING_TASKS),
                     false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENT_AICP_EMPTY_DRAWABLE),
@@ -828,6 +929,15 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_CORNER_RADIUS),
                     false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Global.getUriFor(
+                    Settings.Global.DEVICE_PROVISIONED),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.USER_SETUP_COMPLETE),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_RECENTS_BLACKLIST_VALUES),
+                    false, this, UserHandle.USER_ALL);
             update();
         }
 
@@ -864,20 +974,16 @@ public class RecentController implements RecentPanelView.OnExitListener,
             if (scaleFactor != mScaleFactor) {
                 mScaleFactor = scaleFactor;
                 rebuildRecentsScreen();
-                CacheController.getInstance(mContext).clearCache();
+                CacheController.getInstance(mContext, null).clearCache();
+                ThumbnailsCacheController.getInstance(mContext).clearCache();
             }
+
             if (mRecentPanelView != null) {
                 mRecentPanelView.setScaleFactor(mScaleFactor);
                 mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
                     mRecentPanelView.EXPANDED_MODE_AUTO,
                     UserHandle.USER_CURRENT));
-                mRecentPanelView.setShowTopTask(Settings.System.getIntForUser(
-                    resolver, Settings.System.RECENT_PANEL_SHOW_TOPMOST, 0,
-                    UserHandle.USER_CURRENT) == 1);
-                mRecentPanelView.setShowOnlyRunningTasks(Settings.System.getIntForUser(
-                    resolver, Settings.System.RECENT_SHOW_RUNNING_TASKS, 0,
-                    UserHandle.USER_CURRENT) == 1);
                 mRecentPanelView.setCardColor(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_CARD_BG_COLOR, 0x00ffffff,
                     UserHandle.USER_CURRENT));
@@ -891,6 +997,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
                         Settings.System.getIntForUser(resolver,
                                 Settings.System.SLIM_RECENTS_CORNER_RADIUS, 5,
                                 UserHandle.USER_CURRENT)));
+                mRecentPanelView.setBlackList(Settings.System.getStringForUser(
+                        resolver, Settings.System.SLIM_RECENTS_BLACKLIST_VALUES,
+                        UserHandle.USER_CURRENT));
             }
 
             mRecentContent.setElevation(50);
@@ -932,6 +1041,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
             String currentIconPack = Settings.System.getString(resolver,
                 Settings.System.SLIM_RECENTS_ICON_PACK);
             IconPackHelper.getInstance(mContext).updatePrefs(currentIconPack);
+
+            mIsUserSetup = Settings.Global.getInt(resolver,
+                    Settings.Global.DEVICE_PROVISIONED, 0) != 0
+                    && Settings.Secure.getInt(resolver,
+                    Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
         }
     }
 
@@ -1255,6 +1369,104 @@ public class RecentController implements RecentPanelView.OnExitListener,
             display.getSize(size);
             int screenHeight = size.y;
             return screenHeight;
+        }
+    }
+
+    protected void pinApp(int persistentTaskId) {
+        StatusBar statusBar =
+                SysUiServiceProvider.getComponent(mContext, StatusBar.class);
+        if (statusBar != null) {
+            statusBar.showScreenPinningRequest(persistentTaskId, false);
+            hideRecents(false);
+        }
+    }
+
+    protected static boolean killAppLongClick(Context context,
+            String packageName, int persistentTaskId) {
+        boolean killed = false;
+        if (context.checkCallingOrSelfPermission(
+                android.Manifest.permission.FORCE_STOP_PACKAGES)
+                == PackageManager.PERMISSION_GRANTED) {
+            if (packageName != null) {
+                try {
+                    ActivityManagerNative.getDefault().forceStopPackage(
+                            packageName, UserHandle.USER_CURRENT);
+                    killed = true;
+                } catch (RemoteException e) {
+                   killed = false;
+                }
+                if (killed) {
+                    ActivityManager am = (ActivityManager)
+                            context.getSystemService(Context.ACTIVITY_SERVICE);
+                    if (am != null) {
+                        am.removeTask(persistentTaskId);
+                    }
+                }
+            }
+        }
+        return killed;
+    }
+
+    /*
+     * By default, if you open app A, then app B, then app A again (with double tap or
+     * from recents panel), pressing BACK button will go back from app A to app B
+     * because they will be in the same stack. So i've added the following code that will
+     * instead create a new empty activity at each app launch with HOME as background
+     * main activity of the stack, thus the BACK button will always go back to HOME.
+     * This needs some lines in SystemUI manifest. Btw, atm i'm debated on this, because
+     * we can still press the HOME button to go back to home. So let's hang on for now.
+    */
+    /*public static class ContainerActivity extends Activity {
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+    }
+
+    private static void startContainerActivity(Context context) {
+        Intent mainActivity = new Intent(context,
+                ContainerActivity.class);
+        mainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        context.startActivity(mainActivity);
+    }*/
+
+    private class ComponentCallback implements ComponentCallbacks2 {
+        @Override
+        public void onTrimMemory(int level) {
+            switch (level) {
+                case ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN:
+                    // Stop the loader immediately when the UI is no longer visible
+                    cancelPreloadRecentApps();
+                    break;
+                case ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE:
+                case ComponentCallbacks2.TRIM_MEMORY_BACKGROUND:
+                 break;
+                case ComponentCallbacks2.TRIM_MEMORY_MODERATE:
+                    trimCaches(false);
+                    break;
+                case ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW:
+                    // We are going to be low on memory
+                    trimCaches(true);
+                   break;
+                case ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL:
+                case ComponentCallbacks2.TRIM_MEMORY_COMPLETE:
+                    // We are low on memory, so release everything
+                    evictAllCaches();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        @Override
+        public void onLowMemory() {
+            // onTrimMemory(TRIM_MEMORY_COMPLETE);
+        }
+
+        @Override
+        public void onConfigurationChanged(Configuration newConfig) {
         }
     }
 
