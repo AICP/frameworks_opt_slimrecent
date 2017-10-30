@@ -216,7 +216,7 @@ public class RecentPanelView {
             this.refreshListener = new ExpandableCardAdapter.RefreshListener() {
                 @Override
                 public void onRefresh(int index) {
-                    postnotifyItemChanged(mCardRecyclerView, index, null);
+                    postnotifyItemChanged(mCardRecyclerView, getExpandableCard(), false);
                 }
             };
 
@@ -1132,14 +1132,14 @@ public class RecentPanelView {
                     .getBitmapFromMemCache(task.identifier);
             if (appIcon != null) {
                 ec.appIcon = appIcon;
-                postnotifyItemChanged(mCardRecyclerView, index, null);
+                postnotifyItemChanged(mCardRecyclerView, ec, false);
             } else {
                 AppIconLoader.getInstance(mContext).loadAppIcon(task.info,
                         task.identifier, new AppIconLoader.IconCallback() {
                             @Override
                             public void onDrawableLoaded(Drawable drawable) {
                                 ec.appIcon = drawable;
-                                postnotifyItemChanged(mCardRecyclerView, index, null);
+                                postnotifyItemChanged(mCardRecyclerView, ec, false);
                             }
                 }, mScaleFactor);
             }
@@ -1153,7 +1153,7 @@ public class RecentPanelView {
                 if (screenshot != null) {
                     preloadedThumbNum++;
                     ec.screenshot = screenshot;
-                    postnotifyItemChanged(mCardRecyclerView, index, ec);
+                    postnotifyItemChanged(mCardRecyclerView, ec, true);
                 } else {
                     new BitmapDownloaderTask(mContext, mScaleFactor,
                             mThumbnailHeight, mThumbnailWidth, task.identifier,
@@ -1162,7 +1162,7 @@ public class RecentPanelView {
                         public void onBitmapLoaded(Bitmap bitmap) {
                             preloadedThumbNum++;
                             ec.screenshot = bitmap;
-                            postnotifyItemChanged(mCardRecyclerView, index, ec);
+                            postnotifyItemChanged(mCardRecyclerView, ec, true);
                         }
                     }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
                             task.persistentTaskId);
@@ -1227,18 +1227,18 @@ public class RecentPanelView {
     };
 
     private void postnotifyItemChanged(final RecyclerView recyclerView,
-            int index, ExpandableCard ec) {
+            ExpandableCard ec, boolean bitmapLoading) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
                 if (!recyclerView.isComputingLayout()) {
-                    mCardAdapter.notifyItemChanged(index);
-                    if (ec != null) {
+                    mCardAdapter.notifyItemChanged(ec.index);
+                    if (bitmapLoading) {
                         ec.needsThumbLoading = false;
                     }
                 } else {
-                    postnotifyItemChanged(recyclerView, index, ec);
+                    postnotifyItemChanged(recyclerView, ec, bitmapLoading);
                 }
             }
         });
