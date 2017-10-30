@@ -396,6 +396,10 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         void refreshThumb() {
             refreshListener.onRefresh(index);
         }
+
+        public ExpandableCard getExpandableCard() {
+            return this;
+        }
     }
 
     public static class OptionsItem {
