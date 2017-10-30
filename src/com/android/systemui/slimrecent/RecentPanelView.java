@@ -216,7 +216,7 @@ public class RecentPanelView {
             this.refreshListener = new ExpandableCardAdapter.RefreshListener() {
                 @Override
                 public void onRefresh(int index) {
-                    postnotifyItemChanged(mCardRecyclerView, index, null);
+                    postnotifyItemChanged(mCardRecyclerView, RecentCard.this, false);
                 }
             };
 
@@ -965,7 +965,7 @@ public class RecentPanelView {
      *       See #link:RecentCard, #link:RecentExpandedCard
      *       #link:RecentAppIcon and #link AppIconLoader
      */
-    private class CardLoader extends AsyncTask<Void, ExpandableCard, Boolean> {
+    private class CardLoader extends AsyncTask<Void, RecentCard, Boolean> {
 
         private int mCounter;
         private int preloadedThumbNum = 0;
@@ -1119,27 +1119,21 @@ public class RecentPanelView {
         }
 
         private void addCard(final TaskDescription task, boolean topTask) {
-            RecentCard card = null;
-
-            final int index = mCounter;
-
-            card = new RecentCard(task);
-
-            final ExpandableCard ec = card;
+            final RecentCard card = new RecentCard(task);
 
             final Drawable appIcon =
                     CacheController.getInstance(mContext, mClearThumbOnEviction)
                     .getBitmapFromMemCache(task.identifier);
             if (appIcon != null) {
-                ec.appIcon = appIcon;
-                postnotifyItemChanged(mCardRecyclerView, index, null);
+                card.appIcon = appIcon;
+                postnotifyItemChanged(mCardRecyclerView, card, false);
             } else {
                 AppIconLoader.getInstance(mContext).loadAppIcon(task.info,
                         task.identifier, new AppIconLoader.IconCallback() {
                             @Override
                             public void onDrawableLoaded(Drawable drawable) {
-                                ec.appIcon = drawable;
-                                postnotifyItemChanged(mCardRecyclerView, index, null);
+                                card.appIcon = drawable;
+                                postnotifyItemChanged(mCardRecyclerView, card, false);
                             }
                 }, mScaleFactor);
             }
@@ -1152,8 +1146,8 @@ public class RecentPanelView {
                         .getBitmapFromMemCache(task.identifier);
                 if (screenshot != null) {
                     preloadedThumbNum++;
-                    ec.screenshot = screenshot;
-                    postnotifyItemChanged(mCardRecyclerView, index, ec);
+                    card.screenshot = screenshot;
+                    postnotifyItemChanged(mCardRecyclerView, card, true);
                 } else {
                     new BitmapDownloaderTask(mContext, mScaleFactor,
                             mThumbnailHeight, mThumbnailWidth, task.identifier,
@@ -1161,14 +1155,14 @@ public class RecentPanelView {
                         @Override
                         public void onBitmapLoaded(Bitmap bitmap) {
                             preloadedThumbNum++;
-                            ec.screenshot = bitmap;
-                            postnotifyItemChanged(mCardRecyclerView, index, ec);
+                            card.screenshot = bitmap;
+                            postnotifyItemChanged(mCardRecyclerView, card, true);
                         }
                     }).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
                             task.persistentTaskId);
                 }
             } else {
-                ec.needsThumbLoading = true;
+                card.needsThumbLoading = true;
             }
             card.cardClickListener = new View.OnClickListener() {
                 @Override
@@ -1178,16 +1172,16 @@ public class RecentPanelView {
             };
 
             // Set card color
-            ec.cardBackgroundColor = getCardBackgroundColor(task);
+            card.cardBackgroundColor = getCardBackgroundColor(task);
             //Set corner radius
-            ec.cornerRadius = mCornerRadius;
+            card.cornerRadius = mCornerRadius;
 
             mCounter++;
             publishProgress(card);
         }
 
         @Override
-        protected void onProgressUpdate(ExpandableCard... card) {
+        protected void onProgressUpdate(RecentCard... card) {
             mCardAdapter.addCard(card[0]);
             if (!isTasksLoaded()) {
                 //we have at least one task and card, so can show the panel while we
@@ -1227,18 +1221,18 @@ public class RecentPanelView {
     };
 
     private void postnotifyItemChanged(final RecyclerView recyclerView,
-            int index, ExpandableCard ec) {
+            RecentCard card, boolean bitmapLoading) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
                 if (!recyclerView.isComputingLayout()) {
-                    mCardAdapter.notifyItemChanged(index);
-                    if (ec != null) {
-                        ec.needsThumbLoading = false;
+                    mCardAdapter.notifyItemChanged(card.index);
+                    if (bitmapLoading) {
+                        card.needsThumbLoading = false;
                     }
                 } else {
-                    postnotifyItemChanged(recyclerView, index, ec);
+                    postnotifyItemChanged(recyclerView, card, bitmapLoading);
                 }
             }
         });
