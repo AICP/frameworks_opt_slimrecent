@@ -496,7 +496,7 @@ public class AppSidebar extends FrameLayout {
     private TextView createAppItem(ActionConfig config) {
         TextView tv = new TextView(mContext);
         Drawable icon = ActionHelper.getActionIconImage(mContext, config.getClickAction(),
-                config.getIcon());
+                config.getIcon(), IconPackHelper.getInstance(mContext));
         if (icon != null) {
             icon.setBounds(mScaledIconBounds);
             tv.setCompoundDrawables(null, icon, null, null);

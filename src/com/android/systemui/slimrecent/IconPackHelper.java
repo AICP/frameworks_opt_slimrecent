@@ -29,6 +29,8 @@ import android.content.res.XmlResourceParser;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 
+import com.android.internal.util.aicp.AbstractIconPackHelper;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -41,7 +43,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-public class IconPackHelper {
+public class IconPackHelper implements AbstractIconPackHelper {
     static final String ICON_MASK_TAG = "iconmask";
     static final String ICON_BACK_TAG = "iconback";
     static final String ICON_UPON_TAG = "iconupon";
