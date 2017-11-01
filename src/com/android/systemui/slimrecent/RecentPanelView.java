@@ -105,17 +105,13 @@ public class RecentPanelView {
     private static final int EXPANDED_MODE_ALWAYS = 1;
     private static final int EXPANDED_MODE_NEVER  = 2;
 
-    private static final int MENU_APP_DETAILS_ID   = 0;
-    private static final int MENU_APP_PLAYSTORE_ID = 1;
-    private static final int MENU_APP_AMAZON_ID    = 2;
-
     private static final int THUMB_INIT_LOAD = 5;
 
-    public static final String PLAYSTORE_REFERENCE = "com.android.vending";
-    public static final String AMAZON_REFERENCE    = "com.amazon.venezia";
+    //public static final String PLAYSTORE_REFERENCE = "com.android.vending";
+    //public static final String AMAZON_REFERENCE    = "com.amazon.venezia";
 
-    public static final String PLAYSTORE_APP_URI_QUERY = "market://details?id=";
-    public static final String AMAZON_APP_URI_QUERY    = "amzn://apps/android?p=";
+    //public static final String PLAYSTORE_APP_URI_QUERY = "market://details?id=";
+    //public static final String AMAZON_APP_URI_QUERY    = "amzn://apps/android?p=";
 
     private final Context mContext;
     private final ImageView mEmptyRecentView;
@@ -398,7 +394,13 @@ public class RecentPanelView {
      * Build card list and arrayadapter we need to fill with tasks
      */
     protected void buildCardListAndAdapter() {
-        mCardAdapter = new ExpandableCardAdapter(mContext);
+        boolean neverExpand = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.RECENT_PANEL_EXPANDED_MODE,
+                EXPANDED_MODE_AUTO,
+                UserHandle.USER_CURRENT)
+                == EXPANDED_MODE_NEVER;
+        mCardAdapter = new ExpandableCardAdapter(mContext, neverExpand);
         if (mCardRecyclerView != null) {
             mCardRecyclerView.setAdapter(mCardAdapter);
         }
@@ -885,6 +887,12 @@ public class RecentPanelView {
 
     protected void setExpandedMode(int mode) {
         mExpandedMode = mode;
+        boolean fastMode =
+                mode == EXPANDED_MODE_NEVER;
+        if (fastMode) {
+            ThumbnailsCacheController.getInstance(mContext).clearCache();
+        }
+        mCardAdapter.setFastMode(fastMode);
     }
 
     protected boolean hasFavorite() {
@@ -992,13 +1000,9 @@ public class RecentPanelView {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // Save current thread priority and set it during the loading
-            // to background priority.
-            //mOrigPri = Process.getThreadPriority(Process.myTid());
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             mCounter = 0;
-
             int firstItems = 0;
             final ArrayList<TaskDescription> nonFavoriteTasks = new ArrayList<>();
 
@@ -1012,14 +1016,12 @@ public class RecentPanelView {
 
             final int numTasks = recentTasks.size();
 
-            // Get current task list. We do not need to do it in background. We only load MAX_TASKS.
             for (int i = 0; i < numTasks; i++) {
 
                 // If we reach max apps limit set by user, we are done
                 if (mCounter >= mMaxAppsToLoad) {
                     break;
                 }
-
                 if (isCancelled() || mCancelledByUser) {
                     mIsLoading = false;
                     //return false;
@@ -1050,66 +1052,71 @@ public class RecentPanelView {
                         recentInfo.origActivity, recentInfo.description,
                         false, EXPANDED_STATE_UNKNOWN, recentInfo.taskDescription);
 
-                if (item != null) {
-                    if (!topTask && !mBlacklist.isEmpty()
-                            && mBlacklist.contains(item.packageName)) {
-                        // skip this item and go to next iteration
-                        continue;
-                    }
-                    if (mCounter < 2) {
-                        // we need just the first 2 apps for double tap recents last app action
-                        mController.addTasks(item);
-                    }
+                if (item == null) {
+                    // skip this item and go to next iteration
+                    continue;
+                }
 
-                    if (!mCurrentFavoritesSplit.isEmpty()
-                            && mCurrentFavoritesSplit.contains(item.identifier)) {
-                        item.setIsFavorite(true);
-                     }
+                if (!topTask && !mBlacklist.isEmpty()
+                        && mBlacklist.contains(item.packageName)) {
+                    // skip this item and go to next iteration
+                    continue;
+                }
 
-                    if (topTask) {
-                        // User want to see actual running task. Set it here
-                        int oldState = getExpandedState(item);
-                        if ((oldState & EXPANDED_STATE_TOPTASK) == 0) {
-                            oldState |= EXPANDED_STATE_TOPTASK;
+                if (mCounter < 2) {
+                    // we need just the first 2 apps for double tap recents last app action
+                    mController.addTasks(item);
+                }
+
+                if (!mCurrentFavoritesSplit.isEmpty()
+                        && mCurrentFavoritesSplit.contains(item.identifier)) {
+                    item.setIsFavorite(true);
+                }
+
+                if (topTask) {
+                    // User want to see actual running task. Set it here
+                    int oldState = getExpandedState(item);
+                    if ((oldState & EXPANDED_STATE_TOPTASK) == 0) {
+                        oldState |= EXPANDED_STATE_TOPTASK;
+                    }
+                    item.setExpandedState(oldState);
+                    addCard(item, true);
+                    mFirstTask = item;
+                } else {
+                    // FirstExpandedItems value forces to show always the app screenshot
+                    // if the old state is not known and the user has set expanded mode to auto.
+                    // On all other items we check if they were expanded from the user
+                    // in last known recent app list and restore the state. This counts as well
+                    // if expanded mode is always or never.
+                    int oldState = getExpandedState(item);
+                    if ((oldState & EXPANDED_STATE_BY_SYSTEM) != 0) {
+                        oldState &= ~EXPANDED_STATE_BY_SYSTEM;
+                    }
+                    if ((oldState & EXPANDED_STATE_TOPTASK) != 0) {
+                        oldState &= ~EXPANDED_STATE_TOPTASK;
+                    }
+                    if (firstItems < mFirstExpandedItems) {
+                        //expand only if no expanded_mode_never
+                        if (mExpandedMode != EXPANDED_MODE_NEVER) {
+                            oldState |= EXPANDED_STATE_BY_SYSTEM;
                         }
                         item.setExpandedState(oldState);
-                        addCard(item, true);
-                        mFirstTask = item;
+                        // The first tasks are always added to the task list.
+                        addCard(item, false);
                     } else {
-                        // FirstExpandedItems value forces to show always the app screenshot
-                        // if the old state is not known and the user has set expanded mode to auto.
-                        // On all other items we check if they were expanded from the user
-                        // in last known recent app list and restore the state. This counts as well
-                        // if expanded mode is always or never.
-                        int oldState = getExpandedState(item);
-                        if ((oldState & EXPANDED_STATE_BY_SYSTEM) != 0) {
-                            oldState &= ~EXPANDED_STATE_BY_SYSTEM;
-                        }
-                        if ((oldState & EXPANDED_STATE_TOPTASK) != 0) {
-                            oldState &= ~EXPANDED_STATE_TOPTASK;
-                        }
-                        if (firstItems < mFirstExpandedItems) {
-                            if (mExpandedMode != EXPANDED_MODE_NEVER) {
-                                oldState |= EXPANDED_STATE_BY_SYSTEM;
-                            }
-                            item.setExpandedState(oldState);
-                            // The first tasks are always added to the task list.
+                        /*if (mExpandedMode == EXPANDED_MODE_ALWAYS) {
+                            oldState |= EXPANDED_STATE_BY_SYSTEM;
+                        }*/
+                        item.setExpandedState(oldState);
+                        // Favorite tasks are added next. Non favorite
+                        // we hold for a short time in an extra list.
+                        if (item.getIsFavorite()) {
                             addCard(item, false);
                         } else {
-                            /*if (mExpandedMode == EXPANDED_MODE_ALWAYS) {
-                                oldState |= EXPANDED_STATE_BY_SYSTEM;
-                            }*/
-                            item.setExpandedState(oldState);
-                            // Favorite tasks are added next. Non favorite
-                            // we hold for a short time in an extra list.
-                            if (item.getIsFavorite()) {
-                                addCard(item, false);
-                            } else {
-                                nonFavoriteTasks.add(item);
-                            }
+                            nonFavoriteTasks.add(item);
                         }
-                        firstItems++;
                     }
+                    firstItems++;
                 }
             }
 
@@ -1147,7 +1154,10 @@ public class RecentPanelView {
                             }
                 }, mScaleFactor);
             }
-            if (!topTask && preloadedThumbNum < THUMB_INIT_LOAD) {
+            // skip thumbs loading process if fast mode enabled
+            if (mExpandedMode == EXPANDED_MODE_NEVER) {
+                card.needsThumbLoading = false;
+            } else if (!topTask && preloadedThumbNum < THUMB_INIT_LOAD) {
                 // we load only the first THUMB_INIT_LOAD thumbnails skipping the top task,
                 // to avoid huge work loading all thumbnails. The adapter will trigger the loading
                 // of other ones when showing cards in the panel
@@ -1224,7 +1234,7 @@ public class RecentPanelView {
             new CacheController.EvictionCallback() {
         @Override
         public void onEntryEvicted(String key) {
-            if (key != null) {
+            if (key != null && mExpandedMode != EXPANDED_MODE_NEVER) {
                 ThumbnailsCacheController.getInstance(mContext).removeThumb(key);
             }
         }
