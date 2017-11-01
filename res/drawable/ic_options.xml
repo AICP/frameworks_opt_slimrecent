@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (c) 2017 ABC rom
+
+    Original grabbed from https://material.io/icons/
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="m 4.1985452,12 c 0,-1.837734 1.0802448,-3.4251668 2.6413303,-4.1628948 V 6.4143439 C 4.5410619,7.2311142 2.8811735,9.4245382 2.8811735,12 c 0,2.575462 1.6598884,4.768886 3.958702,5.585656 V 16.162895 C 5.27879,15.425166 4.1985452,13.837733 4.1985452,12 Z M 15,3 c -4.96,0 -9,4.04 -9,9 0,4.96 4.04,9 9,9 4.96,0 9,-4.04 9,-9 0,-4.96 -4.04,-9 -9,-9 z m 0,16 c -3.86,0 -7,-3.14 -7,-7 0,-3.86 3.14,-7 7,-7 3.86,0 7,3.14 7,7 0,3.86 -3.14,7 -7,7 z M 1.6492254,12 c 0,-1.32907 0.7812451,-2.477119 1.9102396,-3.010652 V 7.960391 C 1.8969373,8.551088 0.69648746,10.137397 0.69648746,12 c 0,1.862603 1.20044984,3.448912 2.86297754,4.039609 V 15.010652 C 2.4304705,14.477118 1.6492254,13.329069 1.6492254,12 Z m -1.2942508,0 c 0,-0.722459 0.2229482,-1.346517 0.5451357,-1.636536 V 9.804141 C 0.4256655,10.125233 0.0830865,10.987522 0.0830865,12 c 0,1.012478 0.342579,1.874767 0.8170238,2.195859 V 13.636536 C 0.5779228,13.346517 0.3549746,12.722458 0.3549746,12 Z" />
+</vector>
