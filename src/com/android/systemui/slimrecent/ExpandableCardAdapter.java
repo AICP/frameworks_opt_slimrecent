@@ -17,8 +17,6 @@
  */
 package com.android.systemui.slimrecent;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -34,9 +32,11 @@ import android.transition.TransitionManager;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
-import android.view.animation.PathInterpolator;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,7 +47,8 @@ import com.android.internal.util.slim.ColorUtils;
 
 import com.android.systemui.R;
 
-public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAdapter.ViewHolder> {
+public class ExpandableCardAdapter
+        extends RecyclerView.Adapter<ExpandableCardAdapter.ViewHolder> {
 
     private Context mContext;
 
@@ -62,7 +63,8 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(mContext).inflate(R.layout.card, parent, false));
+        return new ViewHolder(LayoutInflater.from(mContext)
+                .inflate(R.layout.card, parent, false));
     }
 
     @Override
@@ -91,7 +93,10 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             // we need to override tint list instead of setting cardview background color
             // because some dark themes could change system colors being used by
             // cardview code to set default ColorStateList.
-            holder.card.setBackgroundTintList(ColorStateList.valueOf(card.cardBackgroundColor));
+            ColorStateList cl = ColorStateList.valueOf(card.cardBackgroundColor);
+            holder.card.setBackgroundTintList(cl);
+            holder.optionsView.setBackgroundTintList(cl);
+            holder.optionsView.setBackgroundColor(0xff000000 | card.cardBackgroundColor);
             int color;
             if (ColorUtils.isDarkColor(card.cardBackgroundColor)) {
                 color = mContext.getColor(R.color.recents_task_bar_light_text_color);
@@ -100,6 +105,7 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             }
             holder.appName.setTextColor(color);
             holder.expandButton.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
+            card.textColor = color;
         }
 
         if (card.appIcon != null) {
@@ -121,6 +127,17 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         }
     }
 
+    public void addCard(ExpandableCard card) {
+        mCards.add(card);
+        notifyItemInserted(mCards.indexOf(card));
+    }
+
+    public void removeCard(int pos)  {
+        mCards.remove(pos);
+        notifyItemRemoved(pos);
+        notifyItemRangeChanged(pos, getItemCount());
+    }
+
     public void clearCards() {
         mCards.clear();
     }
@@ -129,19 +146,8 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         return mCards.get(pos);
     }
 
-    public void addCard(ExpandableCard card) {
-        mCards.add(card);
-        notifyItemInserted(mCards.indexOf(card));
-    }
-
     public void removeCard(ExpandableCard card) {
         removeCard(mCards.indexOf(card));
-    }
-
-    public void removeCard(int pos)  {
-        mCards.remove(pos);
-        notifyItemRemoved(pos);
-        notifyItemRangeChanged(pos, getItemCount());
     }
 
     @Override
@@ -172,24 +178,25 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             cardContent = (LinearLayout) itemView.findViewById(R.id.card_content);
             favorite = (ImageView) itemView.findViewById(R.id.favorite_icon);
             appName = (TextView) itemView.findViewById(R.id.app_name);
-            appName.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            appName.setTypeface(Typeface.create(
+                    "sans-serif-condensed", Typeface.BOLD));
             screenshot = (ImageView) itemView.findViewById(R.id.screenshot);
             card = (CardView) itemView.findViewById(R.id.card);
             optionsView = (LinearLayout) itemView.findViewById(R.id.card_options);
 
             appIcon = (ImageView) itemView.findViewById(R.id.app_icon);
-            /*appIcon.setOnClickListener(new View.OnClickListener() {
+            appIcon.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (expCard.appIconClickListener != null) {
                         expCard.appIconClickListener.onClick(v);
                     }
                 }
-            });*/
+            });
             appIcon.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                   if (expCard.appIconLongClickListener != null) {
+                    if (expCard.appIconLongClickListener != null) {
                         expCard.appIconLongClickListener.onLongClick(v);
                     }
                     return true;
@@ -205,9 +212,7 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
                             expCard.pinAppListener.onClick(v);
                         }
                     } else if (mFastMode) {
-                        expCard.optionsShown = true;
-                        int[] xy = getXy(v);
-                        showOptions(xy[0], xy[1]);
+                        showOptions();
                     } else if (expCard.expandVisible) {
                         expCard.expanded = !expCard.expanded;
                         if (expCard.expandListener != null) {
@@ -219,7 +224,7 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
                                 (ViewGroup) itemView.getParent(), trans);
                         expandButton.animate().rotation(expCard.expanded ? -180 : 0);
                         notifyItemChanged(getAdapterPosition());
-                   }
+                    }
                 }
             });
 
@@ -239,114 +244,95 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
                     }
                 }
             });
-           itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    expCard.optionsShown = true;
-                    int[] xy = getXy(v);
-                    showOptions(xy[0], xy[1]);
+                    showOptions();
                     return true;
                 }
             });
 
-            hideOptions(-1, -1);
+            hideOptions(true);
         }
 
-       public void setCard(ExpandableCard card) {
+        public void setCard(ExpandableCard card) {
             this.expCard = card;
         }
 
-        void showOptions(int x, int y) {
-            LayoutInflater inflater = LayoutInflater.from(mContext);
-            int backgroundColor = card.getCardBackgroundColor().getDefaultColor();
-            if (ColorUtils.isDarkColor(backgroundColor)) {
-                optionsView.setBackgroundColor(
-                        ColorUtils.lightenColor(backgroundColor));
-            } else {
-                optionsView.setBackgroundColor(
-                        ColorUtils.darkenColor(backgroundColor));
+        void showOptions() {
+            // hide other cards options
+            for (int i = 0; i < getItemCount(); i++) {
+                mCards.get(i).forceHideOptions();
             }
+            LayoutInflater inflater = LayoutInflater.from(mContext);
             optionsView.removeAllViewsInLayout();
             for (int i = 0; i < expCard.mOptions.size(); i++) {
                 OptionsItem item = expCard.mOptions.get(i);
                 ImageView option = (ImageView) inflater.inflate(
                         R.layout.options_item, optionsView, false);
+                item.icon.setColorFilter(expCard.textColor, PorterDuff.Mode.MULTIPLY);
                 option.setImageDrawable(item.icon);
                 option.setId(item.id);
-                option.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (item.clickListener != null) {
-                            hideOptions(-1, -1);
-                            item.clickListener.onClick(v);
-                        } else {
-                            //finishIcon
-                            mCards.get(getAdapterPosition()).optionsShown = false;
-                            int[] xy = getXy(v);
-                            hideOptions(xy[0], xy[1]);
+                    option.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (item.clickListener != null) {
+                                hideOptions(true);
+                                item.clickListener.onClick(v);
+                            } else {
+                                //finishIcon
+                                hideOptions(false);
+                            }
                         }
-                    }
-                });
-                if (item.touchListener != null) {
-                    option.setTag(this);
-                    option.setOnTouchListener(item.touchListener);
-                }
+                    });
                 optionsView.addView(option);
             }
 
-            if (x == -1 || y == -1) {
-                optionsView.setVisibility(View.VISIBLE);
-                return;
-            }
-
-            final double horz = Math.max(itemView.getWidth() - x, x);
-            final double vert = Math.max(itemView.getHeight() - y, y);
-            final float r = (float) Math.hypot(horz, vert);
-
-            final Animator a = ViewAnimationUtils.createCircularReveal(optionsView, x, y, 0, r);
-            a.setDuration(700);
-            a.setInterpolator(new PathInterpolator(0f, 0f, 0.2f, 1f));
-            a.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-
-                }
-            });
             optionsView.setVisibility(View.VISIBLE);
-            a.start();
+            AlphaAnimation animation = new AlphaAnimation(0.0f, 1.0f);
+            Interpolator interpolator = AnimationUtils.loadInterpolator(
+                    mContext, android.R.interpolator.decelerate_quad);
+            animation.setInterpolator(interpolator);
+            animation.setDuration(350);
+            optionsView.startAnimation(animation);
+            cardContentVisibility(false);
         }
 
-        private int[] getXy(View v) {
-            int[] xy = new int[2];
-            v.getLocationOnScreen(xy);
-            xy[0] = upX - xy[0];
-            xy[1] = upY - xy[1];
-            return xy;
-        }
-
-        void hideOptions(int x, int y) {
-            if (x == -1 || y == -1) {
+        public void hideOptions(boolean force) {
+            if (force) {
                 optionsView.setVisibility(View.GONE);
+                cardContentVisibility(true);
                 return;
             }
-
-            final double horz = Math.max(itemView.getWidth() - x, x);
-            final double vert = Math.max(itemView.getHeight() - y, y);
-            final float r = (float) Math.hypot(horz, vert);
-
-            final Animator a = ViewAnimationUtils.createCircularReveal(optionsView, x, y, r, 0);
-            a.setDuration(700);
-            a.setInterpolator(new PathInterpolator(0f, 0f, 0.2f, 1f));
-            a.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    optionsView.setVisibility(View.GONE);
-                }
-            });
-            a.start();
+            AlphaAnimation animation = new AlphaAnimation(1.0f, 0.0f);
+            Interpolator interpolator = AnimationUtils.loadInterpolator(
+                    mContext, android.R.interpolator.accelerate_quad);
+            animation.setInterpolator(interpolator);
+            animation.setDuration(300);
+            animation.setAnimationListener(animListener);
+            optionsView.startAnimation(animation);
+            cardContentVisibility(true);
         }
+
+        void cardContentVisibility(boolean show) {
+            appIcon.setVisibility(show ? View.VISIBLE : View.GONE);
+            favorite.setVisibility(show
+                    ? (expCard != null && expCard.favorite ? View.VISIBLE: View.GONE)
+                    : View.GONE);
+            appName.setVisibility(show ? View.VISIBLE : View.GONE);
+            expandButton.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+
+        Animation.AnimationListener animListener =
+                new Animation.AnimationListener() {
+            public void onAnimationEnd(Animation animation) {
+                optionsView.setVisibility(View.GONE);
+            }
+            public void onAnimationRepeat(Animation animation) {
+            }
+            public void onAnimationStart(Animation animation) {
+            }
+        };
     }
 
     public interface ExpandListener {
@@ -357,13 +343,17 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         void onRefresh(int index);
     }
 
+    public interface HideOptionsListener {
+        void onHideOptions(int index);
+    }
+
     public static class ExpandableCard {
         boolean expanded = false;
         String appName;
         Drawable appIcon;
         Bitmap screenshot;
         private ArrayList<OptionsItem> mOptions = new ArrayList<>();
-        boolean optionsShown = false;
+        int textColor;
         boolean expandVisible = true;
         boolean pinAppIcon = false;
         boolean noIcon = false;
@@ -381,6 +371,7 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
                     thumbnailWidth, thumbnailHeight, persistentTaskId);
         }
         float cornerRadius;
+        View.OnClickListener appIconClickListener;
         View.OnClickListener pinAppListener;
         View.OnLongClickListener appIconLongClickListener;
         int cardBackgroundColor;
@@ -388,6 +379,7 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         View.OnClickListener cardClickListener;
         ExpandListener expandListener;
         RefreshListener refreshListener;
+        HideOptionsListener hideOptionsListener;
         int persistentTaskId = -1;
         String packageName;
 
@@ -407,16 +399,20 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
         void refreshThumb() {
             refreshListener.onRefresh(index);
         }
+
+        void forceHideOptions() {
+            hideOptionsListener.onHideOptions(index);
+        }
     }
 
     public static class OptionsItem {
         int id;
         Drawable icon;
         View.OnClickListener clickListener;
-        View.OnTouchListener touchListener;
         boolean finishIcon = false;
 
-        public OptionsItem(Drawable icon, int id, View.OnClickListener clickListener) {
+        public OptionsItem(Drawable icon, int id,
+                View.OnClickListener clickListener) {
             this.icon = icon;
             this.id = id;
             this.clickListener = clickListener;
@@ -426,10 +422,6 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             this(icon, id, null);
             this.finishIcon = finish;
         }
-
-        public OptionsItem setTouchListener(View.OnTouchListener touchListener) {
-            this.touchListener = touchListener;
-            return this;
-        }
     }
 }
+
