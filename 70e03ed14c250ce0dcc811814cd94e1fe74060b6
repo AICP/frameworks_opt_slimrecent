@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5a7411af_832bd39c",
+        "filename": "src/com/android/systemui/slimrecent/RecentPanelView.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 505
+      },
+      "writtenOn": "2017-11-04T16:44:45Z",
+      "side": 1,
+      "message": "iirc i\u0027ve put the getIntForUser here because this (thus ExpandableCardAdapter creation) is being done before RecentController settingsobserver is called, so after reboot mFastMode here will be always false.",
+      "range": {
+        "startLine": 399,
+        "startChar": 59,
+        "endLine": 399,
+        "endChar": 68
+      },
+      "revId": "70e03ed14c250ce0dcc811814cd94e1fe74060b6",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": false
+    }
+  ]
+}
