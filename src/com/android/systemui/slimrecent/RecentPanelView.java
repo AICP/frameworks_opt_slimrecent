@@ -102,10 +102,10 @@ public class RecentPanelView {
     public static final int EXPANDED_STATE_TOPTASK   = 8;
 
     public static final int EXPANDED_MODE_AUTO    = 0;
-    private static final int EXPANDED_MODE_ALWAYS = 1;
-    private static final int EXPANDED_MODE_NEVER  = 2;
+    public static final int EXPANDED_MODE_ALWAYS = 1;
+    public static final int EXPANDED_MODE_NEVER  = 2;
     // Don't even allow manually expanding
-    private static final int EXPANDED_MODE_DISABLED  = 3;
+    public static final int EXPANDED_MODE_DISABLED  = 3;
 
     private static final int THUMB_INIT_LOAD = 5;
 

@@ -115,6 +115,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     // Animation state.
     private int mAnimationState = ANIMATION_STATE_NONE;
 
+    private final RecyclerView mCardRecyclerView;
     private Configuration mConfiguration;
     private Context mContext;
     private ActivityManager mAm;
@@ -229,7 +230,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mRecentWarningContent =
                 (LinearLayout) mRecentContainer.findViewById(R.id.recent_warning_content);
 
-        final RecyclerView cardRecyclerView =
+        mCardRecyclerView =
                 (RecyclerView) mRecentContainer.findViewById(R.id.recent_list);
 
         mAm = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
@@ -238,11 +239,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mRecentContainer.findViewById(R.id.recents_membar)
                 .setOnLongClickListener(mMemBarLongClickListener);
 
-        cardRecyclerView.setHasFixedSize(true);
-        CacheMoreCardsLayoutManager llm = new CacheMoreCardsLayoutManager(context, mWindowManager);
-        llm.setReverseLayout(true);
-        cardRecyclerView.setLayoutManager(llm);
-        cardRecyclerView.setItemAnimator(mItemAnimator);
+        mCardRecyclerView.setHasFixedSize(true);
 
         mEmptyRecentView =
                 (ImageView) mRecentContainer.findViewById(R.id.empty_recent);
@@ -257,11 +254,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
         // Prepare gesture detector.
         final ScaleGestureDetector recentListGestureDetector =
                 new ScaleGestureDetector(mContext,
-                        new RecentListOnScaleGestureListener(
-                                mRecentWarningContent, cardRecyclerView));
+                        new RecentListOnScaleGestureListener(mRecentWarningContent));
 
         // Prepare recents panel view and set the listeners
-        cardRecyclerView.setOnTouchListener(new View.OnTouchListener() {
+        mCardRecyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 recentListGestureDetector.onTouchEvent(event);
@@ -269,7 +265,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             }
         });
 
-        mRecentPanelView = new RecentPanelView(mContext, this, cardRecyclerView, mEmptyRecentView);
+        mRecentPanelView = new RecentPanelView(mContext, this, mCardRecyclerView, mEmptyRecentView);
         mRecentPanelView.setOnExitListener(this);
         mRecentPanelView.setOnTasksLoadedListener(this);
 
@@ -949,6 +945,16 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             ContentResolver resolver = mContext.getContentResolver();
 
+            boolean isFastMode = Settings.System.getIntForUser(
+                        resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
+                        mRecentPanelView.EXPANDED_MODE_NEVER,
+                        UserHandle.USER_CURRENT) == 1;
+            CacheMoreCardsLayoutManager llm =
+                    new CacheMoreCardsLayoutManager(mContext, mWindowManager, isFastMode);
+            llm.setReverseLayout(true);
+            mCardRecyclerView.setLayoutManager(llm);
+            mCardRecyclerView.setItemAnimator(mItemAnimator);
+
             // Get user gravity.
             mUserGravity = Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_PANEL_GRAVITY, Gravity.RIGHT,
@@ -956,7 +962,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             mAicpEmptyView = Settings.System.getIntForUser(resolver,
                     Settings.System.SLIM_RECENT_AICP_EMPTY_DRAWABLE, 1,
-                    UserHandle.USER_CURRENT) == 1;
+                    UserHandle.USER_CURRENT) == 3;
 
             // Update colors in RecentPanelView
             mPanelColor = Settings.System.getIntForUser(resolver,
@@ -1109,12 +1115,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         // Views we need and are passed trough the constructor.
         private LinearLayout mRecentWarningContent;
-        private RecyclerView mCardRecyclerView;
 
-        RecentListOnScaleGestureListener(
-                LinearLayout recentWarningContent, RecyclerView cardRecyclerView) {
+        RecentListOnScaleGestureListener(LinearLayout recentWarningContent) {
             mRecentWarningContent = recentWarningContent;
-            mCardRecyclerView = cardRecyclerView;
         }
 
         @Override
@@ -1342,11 +1345,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private class CacheMoreCardsLayoutManager extends LinearLayoutManager {
         private Context context;
         private WindowManager mWindowManager;
+        private boolean mFastMode;
 
-        public CacheMoreCardsLayoutManager(Context context, WindowManager windowManager) {
+        public CacheMoreCardsLayoutManager(Context context, WindowManager windowManager,
+                                           boolean fastMode) {
             super(context);
             this.context = context;
             this.mWindowManager = windowManager;
+            this.mFastMode = fastMode;
         }
 
         /**
@@ -1361,7 +1367,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         @Override
         protected int getExtraLayoutSpace(RecyclerView.State state) {
-            return getScreenHeight();
+            return mFastMode ? 300 : getScreenHeight();
         }
 
         private int getScreenHeight() {
