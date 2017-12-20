@@ -983,7 +983,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mRecentPanelView.setScaleFactor(mScaleFactor);
                 mRecentPanelView.setExpandedMode(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
-                    mRecentPanelView.EXPANDED_MODE_AUTO,
+                    RecentPanelView.EXPANDED_MODE_AUTO,
                     UserHandle.USER_CURRENT));
                 mRecentPanelView.setCardColor(Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_CARD_BG_COLOR, 0x00ffffff,
@@ -1361,10 +1361,22 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         @Override
         protected int getExtraLayoutSpace(RecyclerView.State state) {
-            return getScreenHeight();
+            int space = 300;
+            switch(mExpandMode) {
+                case RecentPanelView.EXPANDED_MODE_NEVER:
+                    space = 300;
+                    break;
+                case RecentPanelView.EXPANDED_MODE_AUTO:
+                    space = 600;
+                    break;
+                /*case RecentPanelView.EXPANDED_MODE_ALWAYS:
+                    space = getScreenHeight();
+                    break;*/
+            }
+            return space;
         }
 
-        private int getScreenHeight() {
+        /*private int getScreenHeight() {
             Display display = mWindowManager.getDefaultDisplay();
             Point size = new Point();
             display.getSize(size);
