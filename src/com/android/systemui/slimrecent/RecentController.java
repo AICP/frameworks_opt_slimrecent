@@ -962,7 +962,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             mAicpEmptyView = Settings.System.getIntForUser(resolver,
                     Settings.System.SLIM_RECENT_AICP_EMPTY_DRAWABLE, 1,
-                    UserHandle.USER_CURRENT) == 3;
+                    UserHandle.USER_CURRENT) == 1;
 
             // Update colors in RecentPanelView
             mPanelColor = Settings.System.getIntForUser(resolver,
