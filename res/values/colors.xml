@@ -21,4 +21,5 @@
     <!-- Recents membar text color -->
     <color name="recents_membar_text_color">@android:color/white</color>
 
+    <color name="legacy_icon_background">#FFFFFF</color>
 </resources>

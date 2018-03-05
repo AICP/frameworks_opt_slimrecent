@@ -87,6 +87,7 @@ import java.util.Locale;
 import com.android.systemui.R;
 import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.recents.misc.Utilities;
+import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
@@ -1044,7 +1045,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             String currentIconPack = Settings.System.getString(resolver,
                 Settings.System.SLIM_RECENTS_ICON_PACK);
-            IconPackHelper.getInstance(mContext).updatePrefs(currentIconPack);
+            IconsHandler.getInstance(mContext).updatePrefs(currentIconPack);
 
             mIsUserSetup = Settings.Global.getInt(resolver,
                     Settings.Global.DEVICE_PROVISIONED, 0) != 0
