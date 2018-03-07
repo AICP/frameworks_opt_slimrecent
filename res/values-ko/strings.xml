@@ -20,5 +20,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Sim recents -->
   <!-- Slim recents app sidebar queue app toast -->
+  <string name="toast_recents_queue_app">최근 앱 목록을 닫은 후에 %s 를 엽니다.</string>
   <!-- Slim recents membar -->
 </resources>
