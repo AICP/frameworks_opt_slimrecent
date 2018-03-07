@@ -134,6 +134,7 @@ public class RecentPanelView {
     private int mMaxAppsToLoad;
     private float mCornerRadius;
     private float mScaleFactor;
+    private int mIconSizeId;
     private int mExpandedMode = EXPANDED_MODE_AUTO;
     private boolean mFastMode = false;
     private boolean mIsScreenPinningEnabled;
@@ -1149,7 +1150,7 @@ public class RecentPanelView {
                                 card.appIcon = drawable;
                                 postnotifyItemChanged(mCardRecyclerView, card);
                             }
-                }, mScaleFactor);
+                }, mScaleFactor, mIconSizeId);
             }
             // skip thumbs loading process if fast mode enabled
             if (mExpandedMode != EXPANDED_MODE_DISABLED && !topTask) {
