@@ -67,6 +67,7 @@
                         android:id="@+id/app_name"
                         android:gravity="center_vertical"
                         android:maxLines="2"
+                        android:padding="@dimen/recent_app_name_padding"
                         android:layout_weight="1"
                         android:layout_width="0dp"
                         android:layout_height="match_parent" />

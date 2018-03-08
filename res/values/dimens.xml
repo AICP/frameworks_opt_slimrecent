@@ -7,6 +7,7 @@
     <dimen name="slim_recents_elevation">20dp</dimen>
     <dimen name="recent_app_icon_size">48dp</dimen>
     <dimen name="recent_app_icon_padding">3dp</dimen>
+    <dimen name="recent_app_name_padding">3dp</dimen>
     <dimen name="recent_expand_button_padding">5dp</dimen>
     <dimen name="recent_favorite_icon_size">18dp</dimen>
     <integer name="recent_thumbnail_height_to_width_ratio_percent">75</integer>
