@@ -174,6 +174,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     private Handler mHandler;
 
+    private IconsHandler mIconsHandler;
+
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
@@ -299,6 +301,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 return false;
             }
         });
+
+        mIconsHandler = new IconsHandler(mContext, R.dimen.recent_app_icon_size, mScaleFactor);
+        mRecentPanelView.setIconsHandler(mIconsHandler);
 
         // Settings observer
         new SettingsObserver(mHandler).observe();
@@ -983,7 +988,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mScaleFactor = scaleFactor;
                 rebuildRecentsScreen();
                 CacheController.getInstance(mContext, null).clearCache();
-                IconsHandler.getInstance(mContext).resetIconNormalizer();
+                mIconsHandler.refresh();
+                mIconsHandler.setScaleFactor(scaleFactor);
                 ThumbnailsCacheController.getInstance(mContext).clearCache();
             }
 
@@ -1046,7 +1052,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             String currentIconPack = Settings.System.getString(resolver,
                 Settings.System.SLIM_RECENTS_ICON_PACK);
-            IconsHandler.getInstance(mContext).updatePrefs(currentIconPack);
+            CacheController.getInstance(mContext, null).clearCache();
+            mIconsHandler.updatePrefs(currentIconPack);
 
             mIsUserSetup = Settings.Global.getInt(resolver,
                     Settings.Global.DEVICE_PROVISIONED, 0) != 0
