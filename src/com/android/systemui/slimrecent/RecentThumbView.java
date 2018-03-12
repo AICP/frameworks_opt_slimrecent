@@ -102,9 +102,11 @@ public class RecentThumbView extends ImageView {
             if (bitmap != null && bitmap.isRecycled()) {
                 return;
             }
+            /*
             canvas.setHwBitmapsInSwModeEnabled(false);
-            /*canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
-                            Paint.FILTER_BITMAP_FLAG));*/
+            canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
+                            Paint.FILTER_BITMAP_FLAG));
+            */
             int h = bitmap.getHeight();
             int w = bitmap.getWidth();
             int myWidth = getMeasuredWidth();
