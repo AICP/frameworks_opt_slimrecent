@@ -27,6 +27,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.android.systemui.R;
@@ -46,6 +47,8 @@ import com.android.systemui.R;
  */
 
 public class RecentThumbView extends ImageView {
+
+    private static final String TAG = "RecentThumbView";
 
     private boolean mBlockLayout;
     private Bitmap mBitmap;
@@ -118,7 +121,16 @@ public class RecentThumbView extends ImageView {
                 src = new Rect(0, 0, myWidth*h/myHeight, h);
             }
             final RectF targetRect = new RectF(0.0f, 0.0f, myWidth, myHeight);
-            canvas.drawBitmap(bitmap, src, targetRect, null);
+            try {
+                canvas.drawBitmap(bitmap, src, targetRect, null);
+            } catch (IllegalStateException e) {
+                // Sometimes, when double tapping recents button fast to open last app, we get
+                // java.lang.IllegalStateException:
+                //      Software rendering doesn't support hardware bitmaps
+                // We don't want to crash SystemUI and user doesn't want to see anything either way,
+                // so ignore
+                Log.w(TAG, "canvas draw failed", e);
+            }
         }
     }
 }
