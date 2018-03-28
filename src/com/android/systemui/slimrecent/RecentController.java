@@ -941,11 +941,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_BLACKLIST_VALUES),
                     false, this, UserHandle.USER_ALL);
-            update();
+            update(true);
         }
 
         @Override
-        protected void update() {
+        protected void update(boolean firstBoot) {
             // Close recent panel if it is opened
             hideRecents(false);
 
@@ -1059,6 +1059,12 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     Settings.Global.DEVICE_PROVISIONED, 0) != 0
                     && Settings.Secure.getInt(resolver,
                     Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
+
+            // preload recents after a settings change to refresh the panel
+            // before the user shows it again.
+            if (!firstBoot) {
+                preloadRecentApps();
+            }
         }
     }
 
@@ -1077,11 +1083,11 @@ public class RecentController implements RecentPanelView.OnExitListener,
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_FAVORITES),
                     false, this, UserHandle.USER_ALL);
-            update();
+            update(true);
         }
 
         @Override
-        protected void update() {
+        protected void update(boolean firstBoot) {
             ContentResolver resolver = mContext.getContentResolver();
             if (mRecentPanelView != null) {
                 mRecentPanelView.setCurrentFavorites(Settings.System.getStringForUser(
@@ -1097,6 +1103,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             evictAllCaches();
             mIconsHandler.onDpiChanged(mContext);
             rebuildRecentsScreen();
+            preloadRecentApps();
         }
         mConfiguration.updateFrom(newConfig);
         return true;
