@@ -470,6 +470,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     private void toggle() {
+        new Exception("SCSCSC RecentController toggled").printStackTrace();
         int ld = getLayoutDirection();
         if (mLayoutDirection != ld) {
             mLayoutDirection = ld;
@@ -785,6 +786,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     // Hide the recent window.
     public boolean hideRecents(boolean forceHide) {
+        Log.d("SCSCSC", "hideRecents, force " + forceHide);
         if (!mIsUserSetup) {
             return false;
         }
@@ -815,6 +817,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     // Show the recent window.
     private void showRecents() {
+        Log.d("SCSCSC", "showRecents");
         mIsShowing = true;
         sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS);
         mAnimationState = ANIMATION_STATE_NONE;
