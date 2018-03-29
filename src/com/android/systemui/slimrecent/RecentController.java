@@ -1292,8 +1292,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
             new Runnable() {
                 @Override
                 public void run() {
-                    mAppSidebar = (AppSidebar) View.inflate(mContext, R.layout.recent_app_sidebar,
-                            null);
+                    if (mAppSidebar == null) {
+                        mAppSidebar = (AppSidebar) View.inflate(mContext,
+                                R.layout.recent_app_sidebar, null);
+                    }
                     mAppSidebar.setIconPack(mIconPack);
                     mAppSidebar.setSlimRecent(RecentController.this);
                     mAppSidebar.setSystemUiVisibility(mVisibility);
@@ -1306,7 +1308,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (mAppSidebar != null) {
             mAppSidebar.launchPendingSwipeAction();
             mWindowManager.removeView(mAppSidebar);
-            mAppSidebar = null;
         }
     }
 
@@ -1314,7 +1315,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         addSidebarHandler.removeCallbacks(addSidebarRunnable);
         if (mAppSidebar != null) {
             mWindowManager.removeViewImmediate(mAppSidebar);
-            mAppSidebar = null;
         }
     }
 
