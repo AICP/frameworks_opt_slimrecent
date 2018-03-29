@@ -756,6 +756,7 @@ public class RecentPanelView {
                 InfosCacheController.getInstance(mContext)
                 .getInfosFromMemCache(cn);
         if (info == null) {
+            Log.d("SCSCSC", "slim recents item info not in cache");
             final ResolveInfo resolveInfo = mPm.resolveActivity(intent, 0);
             if (resolveInfo != null) {
                 info = resolveInfo.activityInfo;
@@ -763,12 +764,16 @@ public class RecentPanelView {
                     InfosCacheController.getInstance(mContext)
                             .addInfosToMemoryCache(cn, info);
                 }
+            } else {
+                Log.d("SCSCSC", "slim recents item info not resolvable");
             }
         }
         if (info != null) {
             String title = td.getLabel();
+            Log.d("SCSCSC", "slim recents item info being added for " + title);
             if (title == null) {
                 title = info.loadLabel(mPm).toString();
+                Log.d("SCSCSC", "slim recents item info update title to " + title);
             }
 
             String identifier = TASK_PACKAGE_IDENTIFIER;
@@ -777,6 +782,7 @@ public class RecentPanelView {
             } else {
                 identifier += info.packageName;
             }
+            Log.d("SCSCSC", "slim recents item info identifier is " + identifier);
 
             if (title != null && title.length() > 0) {
                 int color = td.getPrimaryColor();
@@ -788,6 +794,7 @@ public class RecentPanelView {
                 return item;
             }
         }
+        Log.d("SCSCSC", "slim recents item info not available");
         return null;
     }
 
@@ -888,6 +895,10 @@ public class RecentPanelView {
     }
 
     protected void setCancelledByUser(boolean cancelled) {
+        if (cancelled) {
+            Log.d("SCSCSC", "slim recents cancelled by user");
+            new Exception("SCSCSC stacktrace").printStackTrace();
+        }
         mCancelledByUser = cancelled;
     }
 
@@ -1048,10 +1059,14 @@ public class RecentPanelView {
 
                 // If we reach max apps limit set by user, we are done
                 if (mCounter >= mMaxAppsToLoad) {
+                    Log.d("SCSCSC", "slim recents: Max apps loaded, stopping");
                     break;
                 }
                 if (isCancelled() || isCancelledByUser()) {
                     mIsLoading = false;
+                    Log.d("SCSCSC", "slim recents bg task cancelled while going through tasks, " +
+                            "mCancelledByUser: " + mCancelledByUser + "; isCancelled(): " +
+                            isCancelled());
                     return false;
                 }
 
@@ -1080,6 +1095,7 @@ public class RecentPanelView {
                         false, EXPANDED_STATE_UNKNOWN, recentInfo.taskDescription);
 
                 if (item == null) {
+                    Log.d("SCSCSC", "slim recents: skipping NULL task description");
                     // skip this item and go to next iteration
                     continue;
                 }
@@ -1087,11 +1103,13 @@ public class RecentPanelView {
                 if (!topTask && !mBlacklist.isEmpty()
                         && mBlacklist.contains(item.packageName)) {
                     // skip this item and go to next iteration
+                    Log.d("SCSCSC", "slim recents: skip item: topTask " + topTask + " blacklisted " + mBlacklist.contains(item.packageName));
                     continue;
                 }
 
                 if (mCounter < 2) {
                     // we need just the first 2 apps for double tap recents last app action
+                    Log.d("SCSCSC", "slim recents: mCounter < 2");
                     mController.addTasks(item);
                 }
 
@@ -1111,6 +1129,7 @@ public class RecentPanelView {
                         oldState |= EXPANDED_STATE_TOPTASK;
                     }
                     item.setExpandedState(oldState);
+                    Log.d("SCSCSC", "add top task");
                     addCard(item, true);
                     mFirstTask = item;
                 } else {
@@ -1135,6 +1154,7 @@ public class RecentPanelView {
                         item.setExpandedState(oldState);
                         // The first tasks are always added to the task list.
                         addCard(item, false);
+                        Log.d("SCSCSC", "add to firstItems");
                     } else {
                         /*if (mExpandedMode == EXPANDED_MODE_ALWAYS) {
                             oldState |= EXPANDED_STATE_BY_SYSTEM;
@@ -1143,11 +1163,14 @@ public class RecentPanelView {
                         // Favorite tasks are added next. Media playing and non favorite
                         // we hold for a short time in an extra list.
                         if (item.getIsFavorite()) {
+                            Log.d("SCSCSC", "add favorite");
                             addCard(item, false);
                         } else if (item.isMediaPlayingTask()) {
                             item.setisMediaPlayingTask(true);
+                            Log.d("SCSCSC", "add media player");
                             mediaPlayingTasks.add(item);
                         } else {
+                            Log.d("SCSCSC", "add item");
                             nonFavoriteTasks.add(item);
                         }
                     }
@@ -1158,10 +1181,12 @@ public class RecentPanelView {
             // Add now the media playing tasks to the final task list.
             for (TaskDescription item : mediaPlayingTasks) {
                 if (mCounter >= mMaxAppsToLoad) {
+                    Log.d("SCSCSC", "mCounter > mMaxAppsToLoad");
                     break;
                 }
                 if (isCancelled() || isCancelledByUser()) {
                     mIsLoading = false;
+                    Log.d("SCSCSC", "slim recents bg task cancelled while adding favorites");
                     return false;
                 }
                 addCard(item, false);
@@ -1169,10 +1194,12 @@ public class RecentPanelView {
             // Add now the non favorite tasks to the final task list.
             for (TaskDescription item : nonFavoriteTasks) {
                 if (mCounter >= mMaxAppsToLoad) {
+                    Log.d("SCSCSC", "mCounter > mMaxAppsToLoad");
                     break;
                 }
                 if (isCancelled() || isCancelledByUser()) {
                     mIsLoading = false;
+                    Log.d("SCSCSC", "slim recents bg task cancelled while adding non-favorites");
                     return false;
                 }
                 addCard(item, false);
@@ -1556,6 +1583,7 @@ public class RecentPanelView {
             mLoaded = false;
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + 1);
             if (isCancelled() || rContext == null) {
+                Log.d("SCSCSC", "BitmapDownloaderTask: cancelled " + isCancelled() + " rContext " + rContext);
                 return null;
             }
             // Load and return bitmap
@@ -1565,6 +1593,7 @@ public class RecentPanelView {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (isCancelled()) {
+                Log.d("SCSCSC", "BitmapDownloaderTask: cancelled on postExecute");
                 bitmap = null;
             }
             final Context context;
