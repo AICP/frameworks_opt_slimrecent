@@ -89,6 +89,10 @@ public class AppSidebar extends FrameLayout {
     private boolean mSwipedLeft;
     private String mSwipeAction = null;
     private Toast mSwipeToast;
+    private int mSystemUiVisibility;
+    // Setting to detect the need to reload content without actually loading
+    private String mContentSetting;
+    private String mIconPack;
 
     private float mScaleFactor = DEFAULT_SCALE_FACTOR;
 
@@ -118,10 +122,14 @@ public class AppSidebar extends FrameLayout {
         mIconsHandler = new IconsHandler(mContext, R.dimen.recent_app_sidebar_item_size,
                 mScaleFactor);
         setScaledSizes();
+        mSystemUiVisibility = getSystemUiVisibility();
         setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
-                setupAppContainer();
+                if (mSystemUiVisibility != visibility) {
+                    mSystemUiVisibility = visibility;
+                    setupAppContainer();
+                }
             }
         });
     }
@@ -133,10 +141,6 @@ public class AppSidebar extends FrameLayout {
         mSwipeThreshold = mScaledIconSize * SWIPE_THRESHOLD_FACTOR;
         mIconsHandler.setScaleFactor(mScaleFactor);
         mIconsHandler.refresh();
-    }
-
-    void setIconPack(String iconPack) {
-        mIconsHandler.updatePrefs(iconPack);
     }
 
     @Override
@@ -366,6 +370,8 @@ public class AppSidebar extends FrameLayout {
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.RECENT_APP_SIDEBAR_CONTENT), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_DISABLE_LABELS), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_BG_COLOR), false, this);
@@ -373,6 +379,8 @@ public class AppSidebar extends FrameLayout {
                     Settings.System.RECENT_APP_SIDEBAR_TEXT_COLOR), false, this);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_SCALE_FACTOR), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.SLIM_RECENTS_ICON_PACK), false, this);
             update();
         }
 
@@ -390,6 +398,15 @@ public class AppSidebar extends FrameLayout {
 
             boolean requireNewSetup = false;
 
+            String contentSetting = Settings.System.getStringForUser(
+                    resolver, Settings.System.RECENT_APP_SIDEBAR_CONTENT,
+                    UserHandle.USER_CURRENT);
+            if ((contentSetting == null && mContentSetting != null) ||
+                (contentSetting != null && !contentSetting.equals(mContentSetting))) {
+                mContentSetting = contentSetting;
+                requireNewSetup = true;
+            }
+
             boolean hideLabels = Settings.System.getIntForUser(
                     resolver, Settings.System.RECENT_APP_SIDEBAR_DISABLE_LABELS, 0,
                     UserHandle.USER_CURRENT) == 1;
@@ -401,9 +418,7 @@ public class AppSidebar extends FrameLayout {
             if (hideLabels != mHideTextLabels || labelColor != mLabelColor) {
                 mHideTextLabels = hideLabels;
                 mLabelColor = labelColor;
-                if (mScrollView != null) {
-                    requireNewSetup = true;
-                }
+                requireNewSetup = true;
             }
 
             int backgroundColor = Settings.System.getIntForUser(resolver,
@@ -423,6 +438,16 @@ public class AppSidebar extends FrameLayout {
                 setScaledSizes();
                 requireNewSetup = true;
             }
+
+            String iconPack = Settings.System.getString(resolver,
+                    Settings.System.SLIM_RECENTS_ICON_PACK);
+            mIconsHandler.updatePrefs(iconPack, /* force needed when size changed */ true);
+            if ((iconPack == null && mIconPack != null) ||
+                (iconPack != null && !iconPack.equals(mIconPack))) {
+                mIconPack = iconPack;
+                requireNewSetup = true;
+            }
+
             if (requireNewSetup) {
                 setupAppContainer();
             }
