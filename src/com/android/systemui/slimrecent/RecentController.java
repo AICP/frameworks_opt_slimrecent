@@ -155,8 +155,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private int mMembarcolor;
     private int mMemtextcolor;
 
-    private String mIconPack;
-
     private boolean mMemBarLongClickToClear;
 
     private float mScaleFactor;
@@ -1053,13 +1051,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mMemtextcolor = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.SLIM_MEM_TEXT_COLOR, 0x00ffffff);
 
-            mIconPack = Settings.System.getString(resolver,
+            String currentIconPack = Settings.System.getString(resolver,
                 Settings.System.SLIM_RECENTS_ICON_PACK);
             CacheController.getInstance(mContext, null).clearCache();
-            mIconsHandler.updatePrefs(mIconPack);
-            if (mAppSidebar != null) {
-                mAppSidebar.setIconPack(mIconPack);
-            }
+            mIconsHandler.updatePrefs(currentIconPack);
 
             mIsUserSetup = Settings.Global.getInt(resolver,
                     Settings.Global.DEVICE_PROVISIONED, 0) != 0
@@ -1292,9 +1287,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
             new Runnable() {
                 @Override
                 public void run() {
-                    mAppSidebar = (AppSidebar) View.inflate(mContext, R.layout.recent_app_sidebar,
-                            null);
-                    mAppSidebar.setIconPack(mIconPack);
+                    if (mAppSidebar == null) {
+                        mAppSidebar = (AppSidebar) View.inflate(mContext,
+                                R.layout.recent_app_sidebar, null);
+                    }
                     mAppSidebar.setSlimRecent(RecentController.this);
                     mAppSidebar.setSystemUiVisibility(mVisibility);
                     mWindowManager.addView(mAppSidebar, generateLayoutParameter(true));
@@ -1306,7 +1302,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (mAppSidebar != null) {
             mAppSidebar.launchPendingSwipeAction();
             mWindowManager.removeView(mAppSidebar);
-            mAppSidebar = null;
         }
     }
 
@@ -1314,7 +1309,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         addSidebarHandler.removeCallbacks(addSidebarRunnable);
         if (mAppSidebar != null) {
             mWindowManager.removeViewImmediate(mAppSidebar);
-            mAppSidebar = null;
         }
     }
 
