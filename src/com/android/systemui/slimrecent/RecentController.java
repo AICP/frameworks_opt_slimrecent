@@ -155,6 +155,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private int mMembarcolor;
     private int mMemtextcolor;
 
+    private String mIconPack;
+
     private boolean mMemBarLongClickToClear;
 
     private float mScaleFactor;
@@ -1051,10 +1053,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mMemtextcolor = Settings.System.getInt(mContext.getContentResolver(),
                 Settings.System.SLIM_MEM_TEXT_COLOR, 0x00ffffff);
 
-            String currentIconPack = Settings.System.getString(resolver,
+            mIconPack = Settings.System.getString(resolver,
                 Settings.System.SLIM_RECENTS_ICON_PACK);
             CacheController.getInstance(mContext, null).clearCache();
-            mIconsHandler.updatePrefs(currentIconPack);
+            mIconsHandler.updatePrefs(mIconPack);
+            if (mAppSidebar != null) {
+                mAppSidebar.setIconPack(mIconPack);
+            }
 
             mIsUserSetup = Settings.Global.getInt(resolver,
                     Settings.Global.DEVICE_PROVISIONED, 0) != 0
@@ -1289,6 +1294,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 public void run() {
                     mAppSidebar = (AppSidebar) View.inflate(mContext, R.layout.recent_app_sidebar,
                             null);
+                    mAppSidebar.setIconPack(mIconPack);
                     mAppSidebar.setSlimRecent(RecentController.this);
                     mAppSidebar.setSystemUiVisibility(mVisibility);
                     mWindowManager.addView(mAppSidebar, generateLayoutParameter(true));
