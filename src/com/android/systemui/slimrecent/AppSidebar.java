@@ -47,6 +47,8 @@ import com.android.internal.util.aicp.Action;
 import com.android.internal.util.aicp.ActionConfig;
 import com.android.internal.util.aicp.ActionConstants;
 import com.android.internal.util.aicp.ActionHelper;
+
+import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.R;
 
 import java.util.ArrayList;
@@ -94,6 +96,7 @@ public class AppSidebar extends FrameLayout {
     private SettingsObserver mSettingsObserver;
 
     private RecentController mSlimRecent;
+    private IconsHandler mIconsHandler;
 
     public AppSidebar(Context context) {
         this(context, null);
@@ -112,6 +115,8 @@ public class AppSidebar extends FrameLayout {
                 .getDimensionPixelSize(R.dimen.recent_app_sidebar_item_title_text_size);
         mIconSize = resources
                 .getDimensionPixelSize(R.dimen.recent_app_sidebar_item_size) - mItemTextSize;
+        mIconsHandler = new IconsHandler(mContext, R.dimen.recent_app_sidebar_item_size,
+                mScaleFactor);
         setScaledSizes();
         setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
             @Override
@@ -126,6 +131,12 @@ public class AppSidebar extends FrameLayout {
         mScaledIconSize = Math.round(mIconSize * mScaleFactor);
         mScaledIconBounds = new Rect(0, 0, mScaledIconSize, mScaledIconSize);
         mSwipeThreshold = mScaledIconSize * SWIPE_THRESHOLD_FACTOR;
+        mIconsHandler.setScaleFactor(mScaleFactor);
+        mIconsHandler.refresh();
+    }
+
+    void setIconPack(String iconPack) {
+        mIconsHandler.updatePrefs(iconPack);
     }
 
     @Override
@@ -496,7 +507,7 @@ public class AppSidebar extends FrameLayout {
     private TextView createAppItem(ActionConfig config) {
         TextView tv = new TextView(mContext);
         Drawable icon = ActionHelper.getActionIconImage(mContext, config.getClickAction(),
-                config.getIcon(), IconPackHelper.getInstance(mContext));
+                config.getIcon(), mIconsHandler);
         if (icon != null) {
             icon.setBounds(mScaledIconBounds);
             tv.setCompoundDrawables(null, icon, null, null);
