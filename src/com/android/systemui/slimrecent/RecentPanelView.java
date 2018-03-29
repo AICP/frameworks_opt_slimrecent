@@ -885,6 +885,8 @@ public class RecentPanelView {
     }
 
     protected void setCancelledByUser(boolean cancelled) {
+        Log.d("SCSCSC", "slim recents cancelled by user");
+        new Exception("SCSCSC stacktrace").printStackTrace();
         mCancelledByUser = cancelled;
         if (cancelled) {
             setTasksLoaded(false);
@@ -1038,6 +1040,9 @@ public class RecentPanelView {
                 }
                 if (isCancelled() || mCancelledByUser) {
                     mIsLoading = false;
+                    Log.d("SCSCSC", "slim recents bg task cancelled while going through tasks, " +
+                            "mCancelledByUser: " + mCancelledByUser + "; isCancelled(): " +
+                            isCancelled());
                     return false;
                 }
 
@@ -1141,6 +1146,7 @@ public class RecentPanelView {
                 }
                 if (isCancelled() || mCancelledByUser) {
                     mIsLoading = false;
+                    Log.d("SCSCSC", "slim recents bg task cancelled while adding non-favorites");
                     return false;
                 }
                 addCard(item, false);
@@ -1507,6 +1513,7 @@ public class RecentPanelView {
             mLoaded = false;
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + 1);
             if (isCancelled() || rContext == null) {
+                Log.d("SCSCSC", "BitmapDownloaderTask: cancelled " + isCancelled() + " rContext " + rContext);
                 return null;
             }
             // Load and return bitmap
@@ -1516,6 +1523,7 @@ public class RecentPanelView {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
             if (isCancelled()) {
+                Log.d("SCSCSC", "BitmapDownloaderTask: cancelled on postExecute");
                 bitmap = null;
             }
             final Context context;
