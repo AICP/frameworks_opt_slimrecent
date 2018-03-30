@@ -792,10 +792,9 @@ public class RecentPanelView {
      * Load all tasks we want.
      */
     protected void loadTasks() {
-        if (isTasksLoaded() || mIsLoading) {
+        if (areAllTasksLoaded() || mIsLoading) {
             return;
         }
-        mIsLoading = true;
         updateExpandedTaskStates();
 
         // We have all needed tasks now.
@@ -899,7 +898,7 @@ public class RecentPanelView {
         return mCancelledByUser;
     }
 
-    protected boolean isTasksLoaded() {
+    protected boolean areAllTasksLoaded() {
         return mTasksLoaded;
     }
 
@@ -968,13 +967,14 @@ public class RecentPanelView {
     /**
      * Notify listener that tasks are loaded.
      */
-    private void tasksLoaded() {
+    private void taskLoaded() {
+        if (mCancelledByUser) {
+            // Don't load
+            return;
+        }
+        // we have at least one task, show the panel
         if (mOnTasksLoadedListener != null) {
-            mIsLoading = false;
-            if (!isCancelledByUser()) {
-                setTasksLoaded(true);
-                mOnTasksLoadedListener.onTasksLoaded();
-            }
+            mOnTasksLoadedListener.onTasksLoaded();
         }
     }
 
@@ -1015,6 +1015,9 @@ public class RecentPanelView {
         protected void onPreExecute() {
             super.onPreExecute();
 
+            mIsLoading = true;
+            setTasksLoaded(false);
+
             // be sure to hide cards optionsView in the viewHolder
             // before cleaning up cards
             for (int i = 0; i < mCardAdapter.getItemCount(); i++) {
@@ -1042,8 +1045,7 @@ public class RecentPanelView {
                 }
                 if (isCancelled() || mCancelledByUser) {
                     mIsLoading = false;
-                    //return false;
-                    break;
+                    return false;
                 }
 
                 final ActivityManager.RecentTaskInfo recentInfo = recentTasks.get(i);
@@ -1146,7 +1148,7 @@ public class RecentPanelView {
                 }
                 if (isCancelled() || mCancelledByUser) {
                     mIsLoading = false;
-                    break;
+                    return false;
                 }
                 addCard(item, false);
             }
@@ -1208,11 +1210,11 @@ public class RecentPanelView {
         @Override
         protected void onProgressUpdate(RecentCard... card) {
             mCardAdapter.addCard(card[0]);
-            if (!isTasksLoaded()) {
-                //we have at least one task and card, so can show the panel while we
-                //load more tasks and cards
+            if (!areAllTasksLoaded()) {
+                // we have at least one task and card, so can show the panel while we
+                // load more tasks and cards
                setVisibility();
-               tasksLoaded();
+               taskLoaded();
             }
         }
 
@@ -1228,10 +1230,12 @@ public class RecentPanelView {
             // Notify arrayadapter that data set has changed
             notifyDataSetChanged(true);
             // Notfiy controller that tasks are completly loaded.
-            if (!isTasksLoaded()) {
-                setVisibility();
-                tasksLoaded();
-            }
+            mIsLoading = false;;
+            setTasksLoaded(true);
+            // In case we don't have any recents to show, view anyway
+            setVisibility();
+            taskLoaded();
+
         }
     }
 
