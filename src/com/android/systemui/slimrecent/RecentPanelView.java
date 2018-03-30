@@ -950,6 +950,10 @@ public class RecentPanelView {
      * Notify listener that tasks are loaded.
      */
     private void tasksLoaded() {
+        if (mCancelledByUser) {
+            // Don't load
+            return;
+        }
         if (mOnTasksLoadedListener != null) {
             mOnTasksLoadedListener.onTasksLoaded();
         }
@@ -1205,6 +1209,8 @@ public class RecentPanelView {
             // removing alive. This should never happen. Just in case.
             if (!loaded) {
                 Log.v(TAG, "card constructing was cancelled by system or user");
+                mIsLoading = false;
+                return;
             }
 
             // Notify arrayadapter that data set has changed
