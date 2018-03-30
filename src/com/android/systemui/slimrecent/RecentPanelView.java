@@ -951,7 +951,6 @@ public class RecentPanelView {
      */
     private void tasksLoaded() {
         if (mOnTasksLoadedListener != null) {
-            mIsLoading = false;
             if (!isCancelledByUser()) {
                 setTasksLoaded(true);
                 mOnTasksLoadedListener.onTasksLoaded();
@@ -1030,9 +1029,7 @@ public class RecentPanelView {
                     break;
                 }
                 if (isCancelled() || mCancelledByUser) {
-                    mIsLoading = false;
-                    //return false;
-                    break;
+                    return false;
                 }
 
                 final ActivityManager.RecentTaskInfo recentInfo = recentTasks.get(i);
@@ -1134,8 +1131,7 @@ public class RecentPanelView {
                     break;
                 }
                 if (isCancelled() || mCancelledByUser) {
-                    mIsLoading = false;
-                    break;
+                    return false;
                 }
                 addCard(item, false);
             }
@@ -1221,6 +1217,7 @@ public class RecentPanelView {
                 setVisibility();
                 tasksLoaded();
             }
+            mIsLoading = false;
         }
     }
 
