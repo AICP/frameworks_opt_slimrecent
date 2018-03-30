@@ -970,10 +970,7 @@ public class RecentPanelView {
      */
     private void tasksLoaded() {
         if (mOnTasksLoadedListener != null) {
-            if (!isCancelledByUser()) {
-                setTasksLoaded(true);
-                mOnTasksLoadedListener.onTasksLoaded();
-            }
+            mOnTasksLoadedListener.onTasksLoaded();
         }
     }
 
@@ -1226,10 +1223,9 @@ public class RecentPanelView {
             // Notify arrayadapter that data set has changed
             notifyDataSetChanged(true);
             // Notfiy controller that tasks are completly loaded.
-            if (!isTasksLoaded()) {
-                setVisibility();
-                tasksLoaded();
-            }
+            setVisibility();
+            setTasksLoaded(true);
+            tasksLoaded();
             mIsLoading = false;
         }
     }
