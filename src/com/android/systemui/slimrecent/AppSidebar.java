@@ -126,8 +126,7 @@ public class AppSidebar extends FrameLayout {
         setOnSystemUiVisibilityChangeListener(new OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {
-                if (mSystemUiVisibility != visibility) {
-                    mSystemUiVisibility = visibility;
+                if (systemUiVisibilityChanged(visibility)) {
                     setupAppContainer();
                 }
             }
@@ -448,9 +447,22 @@ public class AppSidebar extends FrameLayout {
                 requireNewSetup = true;
             }
 
+            if (systemUiVisibilityChanged(getSystemUiVisibility())) {
+                requireNewSetup = true;
+            }
+
             if (requireNewSetup) {
                 setupAppContainer();
             }
+        }
+    }
+
+    private boolean systemUiVisibilityChanged(int visibility) {
+        if (mSystemUiVisibility != visibility) {
+            mSystemUiVisibility = visibility;
+            return true;
+        } else {
+            return false;
         }
     }
 
