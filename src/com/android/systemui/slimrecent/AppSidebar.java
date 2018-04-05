@@ -90,6 +90,7 @@ public class AppSidebar extends FrameLayout {
     private String mSwipeAction = null;
     private Toast mSwipeToast;
     private int mSystemUiVisibility;
+    private int mVisibleHeight;
     // Setting to detect the need to reload content without actually loading
     private String mContentSetting;
     private String mIconPack;
@@ -460,10 +461,20 @@ public class AppSidebar extends FrameLayout {
     private boolean systemUiVisibilityChanged(int visibility) {
         if (mSystemUiVisibility != visibility) {
             mSystemUiVisibility = visibility;
-            return true;
-        } else {
-            return false;
+            // Only return true if this affects our layout
+            if (getVisibleHeight(null) != mVisibleHeight) {
+                return true;
+            }
         }
+        return false;
+    }
+
+    private int getVisibleHeight(Rect r) {
+        if (r == null) {
+            r = new Rect();
+        }
+        getWindowVisibleDisplayFrame(r);
+        return r.bottom - r.top;
     }
 
     private void setupSidebarContent(){
@@ -477,8 +488,7 @@ public class AppSidebar extends FrameLayout {
 
         // Layout items
         Rect r = new Rect();
-        getWindowVisibleDisplayFrame(r);
-        int windowHeight = r.bottom - r.top;;
+        int windowHeight = getVisibleHeight(r);
         int statusBarHeight = r.top;
         if (mScrollView != null)
             removeView(mScrollView);
@@ -539,6 +549,9 @@ public class AppSidebar extends FrameLayout {
         mScrollView.addView(mAppContainer, SCROLLVIEW_LAYOUT_PARAMS);
         addView(mScrollView, SCROLLVIEW_LAYOUT_PARAMS);
         mAppContainer.setFocusable(true);
+
+        // Remember height for checking if redraw is required
+        mVisibleHeight = windowHeight;
     }
 
     private TextView createAppItem(ActionConfig config) {
