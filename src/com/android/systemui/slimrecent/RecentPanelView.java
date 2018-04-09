@@ -905,9 +905,9 @@ public class RecentPanelView {
     protected void setExpandedMode(int mode) {
         mExpandedMode = mode;
         mFastMode = mode == EXPANDED_MODE_DISABLED;
-        if (mFastMode) {
+        /*if (mFastMode) {
             ThumbnailsCacheController.getInstance(mContext).clearCache();
-        }
+        }*/
         mCardAdapter.setFastMode(mFastMode);
     }
 
@@ -1178,7 +1178,7 @@ public class RecentPanelView {
             card.appName = getCardTitle(task, card);
 
             final Drawable appIcon =
-                    CacheController.getInstance(mContext, mClearThumbOnEviction)
+                    CacheController.getInstance(mContext, /*mClearThumbOnEviction*/null)
                     .getBitmapFromMemCache(task.identifier);
             if (appIcon != null) {
                 card.appIcon = getCardIcon(task, appIcon, card);
@@ -1280,7 +1280,7 @@ public class RecentPanelView {
         mIconsHandler = ih;
     }
 
-    private CacheController.EvictionCallback mClearThumbOnEviction =
+    /*private CacheController.EvictionCallback mClearThumbOnEviction =
             new CacheController.EvictionCallback() {
         @Override
         public void onEntryEvicted(String key) {
@@ -1288,7 +1288,7 @@ public class RecentPanelView {
                 ThumbnailsCacheController.getInstance(mContext).removeThumb(key);
             }
         }
-    };
+    };*/
 
     private void postnotifyItemChanged(final RecyclerView recyclerView,
             RecentCard card) {
