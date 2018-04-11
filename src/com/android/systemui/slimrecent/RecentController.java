@@ -46,11 +46,11 @@ import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.VectorDrawable;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
+//import android.graphics.Point;
 import android.media.MediaMetadata;
-import android.net.Uri;
+//import android.net.Uri;
 import android.os.Handler;
-import android.os.Message;
+//import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.UserHandle;
@@ -59,7 +59,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Display;
+//import android.view.Display;
 import android.view.Gravity;
 import android.view.IWindowManager;
 import android.view.KeyEvent;
@@ -422,7 +422,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mKeyguardText.setTextColor(tintColor);
 
         int padding = mContext.getResources().getDimensionPixelSize(R.dimen.slim_recents_elevation);
-        if (mMainGravity == Gravity.LEFT) {
+        if (mMainGravity == Gravity.START) {
             mRecentContainer.setPadding(0, 0, padding, 0);
             mEmptyRecentView.setRotation(mAicpEmptyView ? 0 : 180);
         } else {
@@ -459,8 +459,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         final Configuration currentConfig = mContext.getResources()
                 .getConfiguration();
         Locale locale = currentConfig.locale;
-        int layoutDirection = TextUtils.getLayoutDirectionFromLocale(locale);
-        return layoutDirection;
+        return TextUtils.getLayoutDirectionFromLocale(locale);
     }
 
     @Override
@@ -976,7 +975,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
             // Get user gravity.
             mUserGravity = Settings.System.getIntForUser(
-                    resolver, Settings.System.RECENT_PANEL_GRAVITY, Gravity.RIGHT,
+                    resolver, Settings.System.RECENT_PANEL_GRAVITY, Gravity.END,
                     UserHandle.USER_CURRENT);
 
             mAicpEmptyView = Settings.System.getIntForUser(resolver,
@@ -1278,7 +1277,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     private int reverseGravity(int gravity){
-        return gravity == Gravity.LEFT ? Gravity.RIGHT : Gravity.LEFT;
+        return gravity == Gravity.START ? Gravity.END : Gravity.START;
     }
 
     // Methods for app sidebar:
