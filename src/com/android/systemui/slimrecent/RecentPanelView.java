@@ -168,6 +168,7 @@ public class RecentPanelView {
     private boolean mMediaPlaying;
     private String mMediaPackageName = "";
     private MediaMetadata mMediaMetaData;
+    private String mMediaText = null;
     private Drawable mArtWork;
 
     final static BitmapFactory.Options sBitmapOptions;
@@ -1379,7 +1380,7 @@ public class RecentPanelView {
         } else if (charSequence != null) {
             return charSequence.toString();
         }
-        return null;
+        return mMediaText;
     }
 
     public void setMediaPlaying(boolean playing, String packageName) {
@@ -1387,8 +1388,13 @@ public class RecentPanelView {
         mMediaPackageName = packageName;
     }
 
-    public void setMediaColors(int color, Drawable artwork, MediaMetadata mediaMetaData) {
+    public void setMedia(int color, Drawable artwork, MediaMetadata mediaMetaData, String title, String text) {
         mMediaMetaData = mediaMetaData;
+        String notificationText = null;
+        if (title != null && text != null) {
+            notificationText = title + " - " + text;
+        }
+        mMediaText = notificationText;
         mMediaColor = color;
         mArtWork = artwork;
         // if we have already set colors or info for a card and the panel is showing,
