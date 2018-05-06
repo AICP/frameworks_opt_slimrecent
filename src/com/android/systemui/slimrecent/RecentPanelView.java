@@ -986,8 +986,17 @@ public class RecentPanelView {
     }
 
     protected void scrollToFirst() {
-        LinearLayoutManager lm = (LinearLayoutManager) mCardRecyclerView.getLayoutManager();
-        lm.scrollToPositionWithOffset(0, 0);
+        mController.getLayoutManager().scrollToPositionWithOffset(0, 0);
+    }
+
+    protected void scrollPanel(boolean down) {
+        final int N = mCardAdapter.getItemCount();
+        if (N > 1) {
+            mCardRecyclerView.smoothScrollToPosition(down ? (mCardAdapter.getItemCount() - 1) : 0);
+            // the following is just for reference, different api that does the same thing
+            /*mController.getLayoutManager().smoothScrollToPosition(mCardRecyclerView, null,
+                    down ? (mCardAdapter.getItemCount() - 1) : 0);*/
+        }
     }
 
     /**

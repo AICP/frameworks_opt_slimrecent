@@ -27,6 +27,8 @@ import android.app.KeyguardManager;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -127,13 +129,15 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private WindowManager mWindowManager;
     private IWindowManager mWindowManagerService;
 
+    private CacheMoreCardsLayoutManager mLayoutManager;
+
     private boolean mIsShowing;
     private boolean mIsToggled;
     private boolean mIsPreloaded;
 
     private boolean mIsUserSetup;
 
-    private boolean mExpandAnimation = false;
+    private boolean mExpandAnimation;
 
     // The different views we need.
     private ViewGroup mParentView;
@@ -179,6 +183,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private Handler mHandler;
 
     private IconsHandler mIconsHandler;
+
+    private boolean mWaitingClearAllConfirmation;
+    private ObjectAnimator mClearAllAnimation;
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -258,6 +265,15 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
         mKeyguardText = (TextView) mKeyguardView.findViewById(R.id.keyguard_recent_text);
 
+        mClearAllAnimation = ObjectAnimator.ofPropertyValuesHolder(
+                mCardRecyclerView,
+                PropertyValuesHolder.ofFloat("alpha", 0.3f)/*,
+                maybe add more anim props here like scaleX and Y*/);
+        mClearAllAnimation.setDuration(850);
+        mClearAllAnimation.setRepeatCount(ObjectAnimator.INFINITE);
+        mClearAllAnimation.setRepeatMode(ObjectAnimator.REVERSE);
+
+
         // Prepare gesture detector.
         final ScaleGestureDetector recentListGestureDetector =
                 new ScaleGestureDetector(mContext,
@@ -267,6 +283,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mCardRecyclerView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (mWaitingClearAllConfirmation) {
+                    cancelClearAllWaiting();
+                }
                 recentListGestureDetector.onTouchEvent(event);
                 return false;
             }
@@ -779,6 +798,34 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return mIsShowing;
     }
 
+    public void scrollPanel(boolean down) {
+        if (mWaitingClearAllConfirmation) {
+            cancelClearAllWaiting();
+        }
+        mRecentPanelView.scrollPanel(down);
+    }
+
+    public void clearAllAppsFromSwipe() {
+        if (mTasks == null || mTasks.isEmpty()) {
+            return;
+        }
+        if (!mWaitingClearAllConfirmation) {
+            mClearAllAnimation.start();
+            mWaitingClearAllConfirmation = true;
+        } else {
+            cancelClearAllWaiting();
+            if (mRecentPanelView.removeAllApplications()) {
+                hideRecents(false);
+            }
+        }
+    }
+
+    protected void cancelClearAllWaiting() {
+        mClearAllAnimation.cancel();
+        mCardRecyclerView.setAlpha(1.0f);
+        mWaitingClearAllConfirmation = false;
+    }
+
     @Override
     public void hideRecentApps(boolean triggeredFromAltTab, boolean triggeredFromHomeKey) {
         hideRecents(triggeredFromHomeKey);
@@ -817,6 +864,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     // Show the recent window.
     private void showRecents() {
         mIsShowing = true;
+        cancelClearAllWaiting();
         sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS);
         mAnimationState = ANIMATION_STATE_NONE;
         mHandler.removeCallbacks(mRecentRunnable);
@@ -967,10 +1015,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
                         resolver, Settings.System.RECENT_PANEL_EXPANDED_MODE,
                         RecentPanelView.EXPANDED_MODE_AUTO,
                         UserHandle.USER_CURRENT);
-            CacheMoreCardsLayoutManager llm =
+            mLayoutManager =
                     new CacheMoreCardsLayoutManager(mContext, mWindowManager, expandMode);
-            llm.setReverseLayout(true);
-            mCardRecyclerView.setLayoutManager(llm);
+            mLayoutManager.setReverseLayout(true);
+            mCardRecyclerView.setLayoutManager(mLayoutManager);
             mCardRecyclerView.setItemAnimator(mItemAnimator);
 
             // Get user gravity.
@@ -1107,6 +1155,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
                         UserHandle.USER_CURRENT));
             }
         }
+    }
+
+    public LinearLayoutManager getLayoutManager() {
+        return (LinearLayoutManager) mLayoutManager;
     }
 
     public boolean onConfigurationChanged(Configuration newConfig) {
