@@ -499,9 +499,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (mAnimationState == ANIMATION_STATE_NONE) {
             if (!isShowing()) {
                 mIsToggled = true;
-                if (mRecentPanelView.atLeastOneTaskAvailable()) {
-                    showRecents();
-                } else if (!mIsPreloaded) {
+                if (!mIsPreloaded) {
                     // This should never happen due that preload should
                     // always be done if someone calls recents. Well a lot
                     // 3rd party apps forget the preload step. So we do it now.
@@ -509,6 +507,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     // screen as soon the preload is finished and the listener
                     // notifies us that we are ready.
                     preloadRecentApps();
+                } else if (mRecentPanelView.atLeastOneTaskAvailable()) {
+                    showRecents();
                 }
             } else {
                 openLastAppPanelToggle();
@@ -1120,11 +1120,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
                     && Settings.Secure.getInt(resolver,
                     Settings.Secure.USER_SETUP_COMPLETE, 0) != 0;
 
-            // preload recents after a settings change to refresh the panel
-            // before the user shows it again.
-            if (!firstBoot) {
-                preloadRecentApps();
-            }
+            // force a new preloading on next Recents call after boot or a settings change
+            // to refresh the panel before the user shows it again.
+            mIsPreloaded = false;
         }
     }
 
