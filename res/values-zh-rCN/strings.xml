@@ -25,5 +25,5 @@
   <string name="toast_recents_queue_app">关闭最近任务后启动%s</string>
   <string name="toast_recents_cancel_queued_app">取消应用程序启动</string>
   <!-- Slim recents membar -->
-  <string name="slim_recents_free_ram">内存: ％1$d MB可用</string>
+  <string name="slim_recents_free_ram">内存: %1$d MB可用</string>
 </resources>
