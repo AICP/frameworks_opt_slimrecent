@@ -43,8 +43,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import com.android.internal.util.slim.ColorUtils;
-
 import com.android.systemui.R;
 
 public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAdapter.ViewHolder> {
