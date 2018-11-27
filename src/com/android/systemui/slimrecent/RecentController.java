@@ -89,17 +89,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.android.internal.util.aicp.ImageHelper;
-
 import com.android.systemui.R;
 import com.android.systemui.recents.misc.SystemServicesProxy;
-import com.android.systemui.recents.misc.Utilities;
+import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
 
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
+
+import com.aicp.gear.util.ImageHelper;
 
 /**
  * Our main recents controller.
@@ -425,7 +425,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (mAicpEmptyView) {
             // AICP empty recents drawable
             AnimatedVectorDrawable vd = (AnimatedVectorDrawable)
-                    mContext.getResources().getDrawable(R.drawable.no_recents, null);
+                    mContext.getResources().getDrawable(R.drawable.aicp_no_recents_slim, null);
             vd.setTint(tintColor);
             mEmptyRecentView.setImageDrawable(vd);
         } else {
@@ -520,6 +520,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     public void startMultiWindow() {
+        /* TODO
         SystemServicesProxy ssp = SystemServicesProxy.getInstance(mContext);
         ActivityManager.RunningTaskInfo runningTask = ssp.getRunningTask();
         int createMode = ActivityManager.DOCKED_STACK_CREATE_MODE_TOP_OR_LEFT;
@@ -537,14 +538,17 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 showRecents();
             }
         }
+        */
    }
 
     protected void startTaskinMultiWindow(int id) {
+        /* TODO
         SystemServicesProxy ssp = SystemServicesProxy.getInstance(mContext);
         int createMode = ActivityManager.DOCKED_STACK_CREATE_MODE_TOP_OR_LEFT;
         if (ssp.startTaskInDockedMode(id, createMode)) {
             openLastApptoBottom();
         }
+        */
    }
 
     private void openLastApptoBottom() {
@@ -589,13 +593,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     private List<ActivityManager.RecentTaskInfo> getRecentTasks() {
-        return mAm.getRecentTasksForUser(ActivityManager.getMaxRecentTasksStatic(),
-                ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
-                | ActivityManager.RECENT_INGORE_DOCKED_STACK_TOP_TASK
-                | ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
-                | ActivityManager.RECENT_IGNORE_UNAVAILABLE
-                | ActivityManager.RECENT_INCLUDE_PROFILES,
-                UserHandle.CURRENT.getIdentifier());
+        // TODO
+        return mAm.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
+                //ActivityManager.RECENT_IGNORE_HOME_AND_RECENTS_STACK_TASKS
+                //| ActivityManager.RECENT_INGORE_DOCKED_STACK_TOP_TASK
+                //| ActivityManager.RECENT_INGORE_PINNED_STACK_TASKS
+                /*|*/ ActivityManager.RECENT_IGNORE_UNAVAILABLE
+                /*| ActivityManager.RECENT_INCLUDE_PROFILES*/);
     }
 
     protected void addTasks(TaskDescription task) {
@@ -650,8 +654,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
      */
     protected static ActivityOptions getAnimation(Context context) {
         return ActivityOptions.makeCustomAnimation(context,
-                com.android.internal.R.anim.recent_enter,
-                com.android.internal.R.anim.recent_screen_fade_out);
+                R.anim.recent_enter,
+                R.anim.recent_screen_fade_out);
     }
 
     private String resolveCurrentLauncherPackage() {
@@ -755,8 +759,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         params.gravity |= Gravity.CENTER_VERTICAL;
 
         // Set animation for our recent window.
-        params.windowAnimations =
-                com.android.internal.R.style.Animation_SlimRecentScreen;
+        params.windowAnimations = R.style.Animation_SlimRecentScreen;
 
         // This title is for debugging only. See: dumpsys window
         params.setTitle(forAppSidebar ? "RecentAppSidebar" : "RecentControlPanel");
@@ -862,7 +865,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 mAnimationState = ANIMATION_STATE_OUT;
                 mHandler.removeCallbacks(mRecentRunnable);
                 mHandler.postDelayed(mRecentRunnable, mContext.getResources().getInteger(
-                        com.android.internal.R.integer.config_recentDefaultDur));
+                        R.integer.config_recentDefaultDur));
                 mWindowManager.removeView(mParentView);
                 removeSidebarView();
                 return true;
@@ -1418,7 +1421,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mMemBar.setMax(max);
             mMemBar.setProgress(available);
             mMemBar.getProgressDrawable().setColorFilter(mMembarcolor == 0x00ffffff
-                    ? mContext.getResources().getColor(R.color.system_accent_color)
+                    ? mContext.getResources().getColor(R.color.recents_membar_color)
                     : mMembarcolor, Mode.MULTIPLY);
             mMemText.setTextColor(mMemtextcolor == 0x00ffffff
                     ? mContext.getResources().getColor(R.color.recents_membar_text_color)
@@ -1506,11 +1509,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
                    killed = false;
                 }
                 if (killed) {
+                    /* TODO
                     ActivityManager am = (ActivityManager)
                             context.getSystemService(Context.ACTIVITY_SERVICE);
                     if (am != null) {
                         am.removeTask(persistentTaskId);
                     }
+                    */
                 }
             }
         }

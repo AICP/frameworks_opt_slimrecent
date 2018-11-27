@@ -86,8 +86,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/* TODO
 import static android.app.ActivityManager.StackId.PINNED_STACK_ID;
 import static android.app.ActivityManager.StackId.RECENTS_STACK_ID;
+*/
 
 /**
  * Our main view controller which handles and construct most of the view
@@ -258,6 +260,7 @@ public class RecentPanelView {
                     /*} else if (id == OPTION_MARKET) {
                         intent = getStoreIntent();*/
                     } else if (id == OPTION_MULTIWINDOW) {
+                        /* TODO
                         int dockSide = WindowManagerProxy.getInstance().getDockSide();
                         if (dockSide != WindowManager.DOCKED_INVALID) {
                             try {
@@ -278,6 +281,7 @@ public class RecentPanelView {
                         }
                         clearOptions();
                         return;
+                        */
                     } else if (id == OPTION_KILL) {
                         if (RecentController.killAppLongClick(
                                 mContext, task.packageName, task.persistentTaskId)) {
@@ -497,18 +501,22 @@ public class RecentPanelView {
                 boolean wasDocked = false;
                 int dockSide = WindowManagerProxy.getInstance().getDockSide();
                 if (dockSide != WindowManager.DOCKED_INVALID) {
+                    /* TODO
                     try {
                         //resize the docked stack to fullscreen to disable current multiwindow mode
                         ActivityManagerNative.getDefault().resizeStack(
                                             ActivityManager.StackId.DOCKED_STACK_ID,
                                             null, true, true, false, -1);
                     } catch (Exception e) {}
+                    */
                     wasDocked = true;
                 }
 
                 ActivityOptions options = RecentController.getAnimation(mContext);
+                /* TODO
                 options.setDockCreateMode(0); //0 means dock app to top, 1 to bottom
                 options.setLaunchStackId(ActivityManager.StackId.DOCKED_STACK_ID);
+                */
                 Handler mHandler = new Handler();
                 mHandler.postDelayed(new Runnable() {
                     public void run() {
@@ -638,7 +646,9 @@ public class RecentPanelView {
     private void removeApplication(TaskDescription td) {
         // Kill the actual app and send accessibility event.
         if (mAm != null) {
+            /* TODO
             mAm.removeTask(td.persistentTaskId);
+            */
 
             // Accessibility feedback
             mCardRecyclerView.setContentDescription(
@@ -701,9 +711,11 @@ public class RecentPanelView {
                 // skip favorite apps
                 continue;
             }
+            /* TODO
             if (mAm != null) {
                 mAm.removeTask(recentInfo.persistentId);
             }
+            */
         }
 
         return !hasFavorite;
@@ -1271,11 +1283,15 @@ public class RecentPanelView {
     }
 
     private List<ActivityManager.RecentTaskInfo> getAllRecentTasks() {
+        /* TODO
         SystemServicesProxy ssp = Recents.getSystemServices();
         int currentUserId = ssp.getCurrentUser();
         updateCurrentQuietProfilesCache(currentUserId);
         return ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
-                currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
+                currentUserId, false/*includeFrontMostExcludedTask*//*, mCurrentQuietProfiles);
+        */
+        return new java.util.ArrayList<>();
+
     }
 
     private void updateCurrentQuietProfilesCache(int currentUserId) {
@@ -1450,9 +1466,10 @@ public class RecentPanelView {
             for (int i = 0; i < tasks.size(); i++) {
                 ActivityManager.RunningTaskInfo task = tasks.get(i);
                 int stackId = task.stackId;
-                if (stackId != RECENTS_STACK_ID && stackId != PINNED_STACK_ID) {
+                // TODO
+                //if (stackId != RECENTS_STACK_ID && stackId != PINNED_STACK_ID) {
                     return task;
-                }
+                //}
             }
         }
         return null;
@@ -1502,7 +1519,7 @@ public class RecentPanelView {
 
     /**
      * Returns a task thumbnail from the activity manager
-     */
+     *//*
     public static Bitmap getThumbnailOld(int taskId, Context context) {
         final ActivityManager am = (ActivityManager)
                 context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -1522,10 +1539,12 @@ public class RecentPanelView {
             }
         }
         return thumbnail;
-    }
+    }*/
 
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
+        /* TODO?
         if (ActivityManager.ENABLE_TASK_SNAPSHOTS) {
+        */
             try {
                 ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
                         .getTaskSnapshot(taskId, reducedResolution);
@@ -1535,10 +1554,13 @@ public class RecentPanelView {
             } catch (RemoteException e) {
                 Log.w(TAG, "Failed to retrieve snapshot", e);
             }
+            /*
             return null;
         } else {
             return getThumbnailOld(taskId, context);
         }
+        */
+        return null;
     }
 
     interface DownloaderCallback {
