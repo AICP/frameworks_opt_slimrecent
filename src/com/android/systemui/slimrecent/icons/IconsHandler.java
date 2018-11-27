@@ -40,8 +40,6 @@ import android.util.Log;
 import com.android.systemui.slimrecent.CacheController;
 import com.android.systemui.slimrecent.icons.RecentPanelIcons;
 
-import com.android.internal.util.aicp.AbstractIconsHandler;
-
 import org.xmlpull.v1.XmlPullParser;
 
 import java.util.ArrayList;
@@ -49,6 +47,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+
+import com.aicp.gear.util.AbstractIconsHandler;
 
 public class IconsHandler implements AbstractIconsHandler {
 

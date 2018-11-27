@@ -43,15 +43,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
 
-import com.android.internal.util.aicp.Action;
-import com.android.internal.util.aicp.ActionConfig;
-import com.android.internal.util.aicp.ActionConstants;
-import com.android.internal.util.aicp.ActionHelper;
-
 import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.R;
 
 import java.util.ArrayList;
+
+import com.aicp.gear.util.Action;
+import com.aicp.gear.util.ActionConfig;
+import com.aicp.gear.util.ActionConstants;
+import com.aicp.gear.util.ActionHelper;
 
 public class AppSidebar extends FrameLayout {
     private static final String TAG = "SlimRecentAppSidebar";

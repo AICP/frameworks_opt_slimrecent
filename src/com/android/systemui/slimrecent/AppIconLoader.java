@@ -32,8 +32,9 @@ import com.android.systemui.R;
 
 import java.lang.ref.WeakReference;
 
-import com.android.internal.util.aicp.ImageHelper;
 import com.android.systemui.slimrecent.icons.IconsHandler;
+
+import com.aicp.gear.util.ImageHelper;
 
 /**
  * This class handles async app icon load for the requested apps
