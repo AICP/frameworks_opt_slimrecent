@@ -71,6 +71,7 @@ import android.widget.ImageView;
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.recents.misc.SystemServicesProxy;
+import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
@@ -86,8 +87,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+/* TODO
 import static android.app.ActivityManager.StackId.PINNED_STACK_ID;
 import static android.app.ActivityManager.StackId.RECENTS_STACK_ID;
+*/
 
 /**
  * Our main view controller which handles and construct most of the view
@@ -258,6 +261,7 @@ public class RecentPanelView {
                     /*} else if (id == OPTION_MARKET) {
                         intent = getStoreIntent();*/
                     } else if (id == OPTION_MULTIWINDOW) {
+                        /* TODO
                         int dockSide = WindowManagerProxy.getInstance().getDockSide();
                         if (dockSide != WindowManager.DOCKED_INVALID) {
                             try {
@@ -278,6 +282,7 @@ public class RecentPanelView {
                         }
                         clearOptions();
                         return;
+                        */
                     } else if (id == OPTION_KILL) {
                         if (RecentController.killAppLongClick(
                                 mContext, task.packageName, task.persistentTaskId)) {
@@ -497,18 +502,22 @@ public class RecentPanelView {
                 boolean wasDocked = false;
                 int dockSide = WindowManagerProxy.getInstance().getDockSide();
                 if (dockSide != WindowManager.DOCKED_INVALID) {
+                    /* TODO
                     try {
                         //resize the docked stack to fullscreen to disable current multiwindow mode
                         ActivityManagerNative.getDefault().resizeStack(
                                             ActivityManager.StackId.DOCKED_STACK_ID,
                                             null, true, true, false, -1);
                     } catch (Exception e) {}
+                    */
                     wasDocked = true;
                 }
 
                 ActivityOptions options = RecentController.getAnimation(mContext);
+                /* TODO
                 options.setDockCreateMode(0); //0 means dock app to top, 1 to bottom
                 options.setLaunchStackId(ActivityManager.StackId.DOCKED_STACK_ID);
+                */
                 Handler mHandler = new Handler();
                 mHandler.postDelayed(new Runnable() {
                     public void run() {
@@ -637,29 +646,27 @@ public class RecentPanelView {
      */
     private void removeApplication(TaskDescription td) {
         // Kill the actual app and send accessibility event.
-        if (mAm != null) {
-            mAm.removeTask(td.persistentTaskId);
+        ActivityManagerWrapper.getInstance().removeTask(td.persistentTaskId);
 
-            // Accessibility feedback
-            mCardRecyclerView.setContentDescription(
-                    mContext.getString(R.string.accessibility_recents_item_dismissed,
-                            td.getLabel()));
-            mCardRecyclerView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
-            mCardRecyclerView.setContentDescription(null);
+        // Accessibility feedback
+        mCardRecyclerView.setContentDescription(
+                mContext.getString(R.string.accessibility_recents_item_dismissed,
+                        td.getLabel()));
+        mCardRecyclerView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
+        mCardRecyclerView.setContentDescription(null);
 
-            // Remove app from task and expanded state list.
-            removeExpandedTaskState(td.identifier);
+        // Remove app from task and expanded state list.
+        removeExpandedTaskState(td.identifier);
 
-            // Refresh activity info on next app load if we removed the app
-            // we can still keep icons
-            InfosCacheController.getInstance(mContext).removeInfos(td.componentName);
-            /* we could also refresh thumbs but this will slow down panel loading e.g. after a
-                clear all apps action, it's not worth it considering that even an old thumb
-                is good to recognize the app. A better solution would be to add a "last time"
-                thumb load check and refresh thumbs after some time.
-            */
-            // ThumbnailsCacheController.getInstance(mContext).removeThumb(td.identifier);
-        }
+        // Refresh activity info on next app load if we removed the app
+        // we can still keep icons
+        InfosCacheController.getInstance(mContext).removeInfos(td.componentName);
+        /* we could also refresh thumbs but this will slow down panel loading e.g. after a
+            clear all apps action, it's not worth it considering that even an old thumb
+            is good to recognize the app. A better solution would be to add a "last time"
+            thumb load check and refresh thumbs after some time.
+        */
+        // ThumbnailsCacheController.getInstance(mContext).removeThumb(td.identifier);
 
         // All apps were removed? Close recents panel.
         if (mCardAdapter.getItemCount() == 0) {
@@ -701,9 +708,7 @@ public class RecentPanelView {
                 // skip favorite apps
                 continue;
             }
-            if (mAm != null) {
-                mAm.removeTask(recentInfo.persistentId);
-            }
+            ActivityManagerWrapper.getInstance().removeTask(recentInfo.persistentId);
         }
 
         return !hasFavorite;
@@ -1271,11 +1276,15 @@ public class RecentPanelView {
     }
 
     private List<ActivityManager.RecentTaskInfo> getAllRecentTasks() {
+        /* TODO
         SystemServicesProxy ssp = Recents.getSystemServices();
         int currentUserId = ssp.getCurrentUser();
         updateCurrentQuietProfilesCache(currentUserId);
         return ssp.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(),
-                currentUserId, false/*includeFrontMostExcludedTask*/, mCurrentQuietProfiles);
+                currentUserId, false/*includeFrontMostExcludedTask*//*, mCurrentQuietProfiles);
+        */
+        return mAm.getRecentTasks(ActivityManager.getMaxRecentTasksStatic(), 0);
+
     }
 
     private void updateCurrentQuietProfilesCache(int currentUserId) {
@@ -1450,9 +1459,10 @@ public class RecentPanelView {
             for (int i = 0; i < tasks.size(); i++) {
                 ActivityManager.RunningTaskInfo task = tasks.get(i);
                 int stackId = task.stackId;
-                if (stackId != RECENTS_STACK_ID && stackId != PINNED_STACK_ID) {
+                // TODO
+                //if (stackId != RECENTS_STACK_ID && stackId != PINNED_STACK_ID) {
                     return task;
-                }
+                //}
             }
         }
         return null;
@@ -1502,7 +1512,7 @@ public class RecentPanelView {
 
     /**
      * Returns a task thumbnail from the activity manager
-     */
+     *//*
     public static Bitmap getThumbnailOld(int taskId, Context context) {
         final ActivityManager am = (ActivityManager)
                 context.getSystemService(Context.ACTIVITY_SERVICE);
@@ -1522,10 +1532,12 @@ public class RecentPanelView {
             }
         }
         return thumbnail;
-    }
+    }*/
 
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
+        /* TODO?
         if (ActivityManager.ENABLE_TASK_SNAPSHOTS) {
+        */
             try {
                 ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
                         .getTaskSnapshot(taskId, reducedResolution);
@@ -1535,10 +1547,13 @@ public class RecentPanelView {
             } catch (RemoteException e) {
                 Log.w(TAG, "Failed to retrieve snapshot", e);
             }
+            /*
             return null;
         } else {
             return getThumbnailOld(taskId, context);
         }
+        */
+        return null;
     }
 
     interface DownloaderCallback {
