@@ -113,9 +113,18 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
 
         holder.appName.setText(card.appName);
 
-        if (!mFastMode && card.screenshot != null && !card.screenshot.isRecycled()) {
-            holder.screenshot.setImageBitmap(card.screenshot);
+        if (!mFastMode) {
+            if (canDisplayScreenshot(card)) {
+                holder.screenshot.setImageBitmap(card.screenshot);
+            } else {
+                holder.screenshot.setVisibility(View.GONE);
+                holder.expandButton.setVisibility(View.GONE);
+            }
         }
+    }
+
+    private boolean canDisplayScreenshot(ExpandableCard card) {
+        return card.screenshot != null && !card.screenshot.isRecycled();
     }
 
     public void addCard(ExpandableCard card) {
@@ -312,7 +321,8 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             appIcon.setVisibility(show ? View.VISIBLE : View.GONE);
             appName.setVisibility(show ? View.VISIBLE : View.GONE);
             favorite.setVisibility(show && expCard.favorite ? View.VISIBLE : View.GONE);
-            expandButton.setVisibility(show && !expCard.noIcon ? View.VISIBLE : View.GONE);
+            expandButton.setVisibility(show && !expCard.noIcon &&
+                    (mFastMode || canDisplayScreenshot(expCard)) ? View.VISIBLE : View.GONE);
         }
 
         Animation.AnimationListener animListener =
