@@ -18,5 +18,4 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="toast_recents_queue_app">履歴を閉じた後%sを起動します</string>
 </resources>
