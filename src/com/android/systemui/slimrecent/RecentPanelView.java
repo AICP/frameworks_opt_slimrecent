@@ -56,10 +56,6 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Settings;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.RecyclerView.ViewHolder;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 //import android.view.Gravity;
@@ -68,9 +64,13 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.ViewHolder;
+import androidx.recyclerview.widget.ItemTouchHelper;
+
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
-import com.android.systemui.recents.misc.SystemServicesProxy;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
@@ -614,9 +614,11 @@ public class RecentPanelView {
         ActivityManagerWrapper.getInstance().removeTask(td.persistentTaskId);
 
         // Accessibility feedback
+        /*
         mCardRecyclerView.setContentDescription(
                 mContext.getString(R.string.accessibility_recents_item_dismissed,
                         td.getLabel()));
+        */
         mCardRecyclerView.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
         mCardRecyclerView.setContentDescription(null);
 
@@ -1301,7 +1303,7 @@ public class RecentPanelView {
         } else if (task != null && task.cardColor != 0) {
             return task.cardColor;
         } else {
-            return mRes.getColor(R.color.recents_task_bar_default_background_color);
+            return mRes.getColor(R.color.recent_card_background);
         }
     }
 
@@ -1471,7 +1473,7 @@ public class RecentPanelView {
             ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
                     .getTaskSnapshot(taskId, reducedResolution);
             if (snapshot != null) {
-                return Bitmap.createHardwareBitmap(snapshot.getSnapshot());
+                return Bitmap.wrapHardwareBuffer(snapshot.getSnapshot(), snapshot.getColorSpace());
             }
         } catch (RemoteException e) {
             Log.w(TAG, "Failed to retrieve snapshot", e);

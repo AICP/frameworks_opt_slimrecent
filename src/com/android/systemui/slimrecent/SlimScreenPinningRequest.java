@@ -234,7 +234,8 @@ public class SlimScreenPinningRequest implements View.OnClickListener {
             mLayout.findViewById(R.id.screen_pinning_text_area)
                     .setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
             View buttons = mLayout.findViewById(R.id.screen_pinning_buttons);
-            if (Recents.getSystemServices().hasSoftNavigationBar()) {
+            // TODO if (Recents.getSystemServices().hasSoftNavigationBar()) {
+            if (true) {
                 buttons.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
                 swapChildrenIfRtlAndVertical(buttons);
             } else {

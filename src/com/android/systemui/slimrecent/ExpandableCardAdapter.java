@@ -23,8 +23,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
 import android.transition.AutoTransition;
 import android.transition.Fade;
 import android.transition.Transition;
@@ -40,6 +38,9 @@ import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
@@ -78,9 +79,10 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
 
         holder.card.setRadius(card.cornerRadius);
 
-        if (card.pinAppIcon) {
+        // TODO
+        /*if (card.pinAppIcon) {
             holder.expandButton.setImageResource(R.drawable.recents_lock_to_app_pin);
-        } else if (mFastMode) {
+        } else*/ if (mFastMode) {
             holder.expandButton.setImageResource(R.drawable.ic_options);
         } else if (card.expandVisible) {
             holder.expandButton.setImageResource(R.drawable.ic_expand);
@@ -98,9 +100,9 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             holder.optionsView.setBackgroundColor(0xff000000 | card.cardBackgroundColor);
             int color;
             if (ColorUtils.isDarkColor(card.cardBackgroundColor)) {
-                color = mContext.getColor(R.color.recents_task_bar_light_text_color);
+                color = mContext.getColor(R.color.recent_foreground_light);
             } else {
-                color = mContext.getColor(R.color.recents_task_bar_dark_text_color);
+                color = mContext.getColor(R.color.recent_foreground_dark);
             }
             holder.appName.setTextColor(color);
             holder.expandButton.setColorFilter(color, PorterDuff.Mode.MULTIPLY);
