@@ -43,7 +43,11 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.systemui.Dependency;
 import com.android.systemui.R;
+import com.android.systemui.shared.system.QuickStepContract;
+import com.android.systemui.shared.system.WindowManagerWrapper;
+import com.android.systemui.statusbar.phone.NavigationModeController;
 
 import com.android.systemui.recents.Recents;
 //import com.android.systemui.statusbar.phone.SlimNavigationBarView;
@@ -52,7 +56,8 @@ import java.util.ArrayList;
 
 //import slim.provider.SlimSettings;
 
-public class SlimScreenPinningRequest implements View.OnClickListener {
+public class SlimScreenPinningRequest implements View.OnClickListener,
+        NavigationModeController.ModeChangedListener {
 
     private final Context mContext;
     //private SlimNavigationBarView mSlimNavigationBarView = null;
@@ -61,6 +66,7 @@ public class SlimScreenPinningRequest implements View.OnClickListener {
     private final WindowManager mWindowManager;
 
     private RequestWindowView mRequestWindow;
+    private int mNavBarMode;
 
     // Id of task to be pinned or locked.
     private int taskId;
@@ -71,6 +77,7 @@ public class SlimScreenPinningRequest implements View.OnClickListener {
                 mContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
         mWindowManager = (WindowManager)
                 mContext.getSystemService(Context.WINDOW_SERVICE);
+        mNavBarMode = Dependency.get(NavigationModeController.class).addListener(this);
     }
 
     /*
@@ -108,6 +115,11 @@ public class SlimScreenPinningRequest implements View.OnClickListener {
         // show the confirmation
         WindowManager.LayoutParams lp = getWindowLayoutParams();
         mWindowManager.addView(mRequestWindow, lp);
+    }
+
+    @Override
+    public void onNavigationModeChanged(int mode) {
+        mNavBarMode = mode;
     }
 
     public void onConfigurationChanged() {
@@ -234,7 +246,9 @@ public class SlimScreenPinningRequest implements View.OnClickListener {
             mLayout.findViewById(R.id.screen_pinning_text_area)
                     .setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
             View buttons = mLayout.findViewById(R.id.screen_pinning_buttons);
-            if (Recents.getSystemServices().hasSoftNavigationBar()) {
+            WindowManagerWrapper wm = WindowManagerWrapper.getInstance();
+            if (!QuickStepContract.isGesturalMode(mNavBarMode)
+                        && wm.hasSoftNavigationBar(mContext.getDisplayId())) {
                 buttons.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
                 swapChildrenIfRtlAndVertical(buttons);
             } else {

@@ -187,8 +187,7 @@ public class AppSidebar extends FrameLayout {
     }
     private int getLabelColor(){
         return mLabelColor == 0x00ffffff ?
-                mContext.getResources().getColor(R.color.recents_task_bar_light_text_color) :
-                mLabelColor;
+                mContext.getResources().getColor(R.color.recent_foreground) : mLabelColor;
     }
 
     @Override

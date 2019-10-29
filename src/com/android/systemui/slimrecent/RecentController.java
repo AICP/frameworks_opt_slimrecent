@@ -62,9 +62,6 @@ import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -88,17 +85,20 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.text.TextUtils;
 
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import com.android.systemui.R;
-import com.android.systemui.recents.misc.SystemServicesProxy;
+import com.android.systemui.recents.RecentsImplementation;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
 
@@ -117,7 +117,7 @@ import com.aicp.gear.util.ImageHelper;
  * are handled here.
  */
 public class RecentController implements RecentPanelView.OnExitListener,
-        RecentPanelView.OnTasksLoadedListener, CommandQueue.Callbacks {
+        RecentPanelView.OnTasksLoadedListener, RecentsImplementation {
 
     private static final String TAG = "SlimRecentsController";
 
@@ -128,7 +128,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     // Animation state.
     private int mAnimationState = ANIMATION_STATE_NONE;
 
-    private final RecyclerView mCardRecyclerView;
+    private RecyclerView mCardRecyclerView;
     private Configuration mConfiguration;
     private Context mContext;
     private ActivityManager mAm;
@@ -212,7 +212,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     };
 
-    public RecentController(Context context) {
+    public RecentController() {
+    }
+
+    public void onStart(Context context, SysUiServiceProvider sysUiServiceProvider) {
         mContext = context;
         mLayoutDirection = getLayoutDirection();
         mScaleFactor = Settings.System.getIntForUser(
@@ -329,19 +332,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mContext.registerComponentCallbacks(new ComponentCallback());
     }
 
-    public void removeSbCallbacks() {
-        SysUiServiceProvider.getComponent(mContext, CommandQueue.class)
-                .removeCallbacks(this);
-    }
-
     public void refreshCachedPackage(String packageName, boolean removedPackage) {
         CacheController.getInstance(mContext, null).refreshPackage(packageName, removedPackage);
         InfosCacheController.getInstance(mContext).refreshPackage(packageName);
-    }
-
-    public void addSbCallbacks() {
-        SysUiServiceProvider.getComponent(mContext, CommandQueue.class)
-                .addCallbacks(this);
     }
 
     public void evictAllCaches() {
@@ -511,7 +504,10 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     }
 
-    public boolean startMultiWindow() {
+    @Override
+    public boolean splitPrimaryTask(int stackCreateMode, Rect initialBounds,
+                                    int metricsDockAction) {
+        /* TODO
         SystemServicesProxy ssp = SystemServicesProxy.getInstance(mContext);
         ActivityManager.RunningTaskInfo runningTask =
                 ActivityManagerWrapper.getInstance().getRunningTask();
@@ -540,6 +536,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             }
             return true;
         }
+        */
         return false;
     }
 
@@ -1186,7 +1183,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return (LinearLayoutManager) mLayoutManager;
     }
 
-    public boolean onConfigurationChanged(Configuration newConfig) {
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
         if (mConfiguration.densityDpi != newConfig.densityDpi) {
             hideRecents(true);
             evictAllCaches();
@@ -1195,7 +1193,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
             preloadRecentApps();
         }
         mConfiguration.updateFrom(newConfig);
-        return true;
     }
 
     /**
