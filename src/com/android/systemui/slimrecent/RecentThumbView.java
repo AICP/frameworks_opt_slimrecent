@@ -123,7 +123,7 @@ public class RecentThumbView extends ImageView {
             final RectF targetRect = new RectF(0.0f, 0.0f, myWidth, myHeight);
             try {
                 canvas.drawBitmap(bitmap, src, targetRect, null);
-            } catch (IllegalStateException e) {
+            } catch (IllegalStateException|IllegalArgumentException e) {
                 // Sometimes, when double tapping recents button fast to open last app, we get
                 // java.lang.IllegalStateException:
                 //      Software rendering doesn't support hardware bitmaps
