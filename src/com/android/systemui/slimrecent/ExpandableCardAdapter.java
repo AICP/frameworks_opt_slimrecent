@@ -178,7 +178,8 @@ public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAd
             cardContent = (LinearLayout) itemView.findViewById(R.id.card_content);
             favorite = (ImageView) itemView.findViewById(R.id.favorite_icon);
             appName = (TextView) itemView.findViewById(R.id.app_name);
-            appName.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+            appName.setTypeface(
+                    Typeface.create(appName.getTypeface(), Typeface.BOLD));
             screenshot = (RecentThumbView) itemView.findViewById(R.id.screenshot);
             card = (CardView) itemView.findViewById(R.id.card);
             optionsView = (LinearLayout) itemView.findViewById(R.id.card_options);
