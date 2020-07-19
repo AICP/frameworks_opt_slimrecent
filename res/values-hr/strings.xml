@@ -17,8 +17,11 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Sim recents -->
     <string name="slim_recent_keyguard">Otključajte uređaj da biste vidjeli popis nedavnih aplikacija</string>
     <string name="slim_recent_pinned">Otkačite zaslon za prikaz nedavnih aplikacija</string>
+    <!-- Slim recents app sidebar queue app toast -->
     <string name="toast_recents_cancel_queued_app">Pokretanje aplikacije je otkazano</string>
+    <!-- Slim recents membar -->
     <string name="slim_recents_free_ram">%1$d RAMa slobodno</string>
 </resources>
