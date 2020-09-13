@@ -17,12 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <!-- Sim recents -->
     <string name="slim_recent_keyguard">ئامێرەکەت بکەوە بۆ بینینی دوایینەکان</string>
     <string name="slim_recent_pinned">جێگیری ڕوونما لادە بۆ بینینی دوایینەکان</string>
-    <!-- Slim recents app sidebar queue app toast -->
     <string name="toast_recents_queue_app">چوونەنێو %s پاش داخستنی دوایینەکان</string>
     <string name="toast_recents_cancel_queued_app">چوونەنێو ئەپ پاشگەزکرا</string>
-    <!-- Slim recents membar -->
     <string name="slim_recents_free_ram">ڕام: %1$d مب بەتاڵە</string>
 </resources>
