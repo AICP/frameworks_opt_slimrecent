@@ -59,6 +59,7 @@ import android.media.MediaMetadata;
 import android.os.Handler;
 //import android.os.Message;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -93,13 +94,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.android.internal.statusbar.IStatusBarService;
+
 import com.android.systemui.R;
 import com.android.systemui.recents.RecentsImplementation;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
 
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
@@ -135,6 +137,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private IActivityManager mIam;
     private WindowManager mWindowManager;
     private IWindowManager mWindowManagerService;
+    private IStatusBarService mStatusBarService;
 
     private CacheMoreCardsLayoutManager mLayoutManager;
 
@@ -215,7 +218,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     public RecentController() {
     }
 
-    public void onStart(Context context, SysUiServiceProvider sysUiServiceProvider) {
+    public void onStart(Context context) {
         mContext = context;
         mLayoutDirection = getLayoutDirection();
         mScaleFactor = Settings.System.getIntForUser(
@@ -330,6 +333,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
         new KeepOpenSettingsObserver(mHandler).observe();
 
         mContext.registerComponentCallbacks(new ComponentCallback());
+    }
+
+    private IStatusBarService getStatusBarService() {
+        if (mStatusBarService == null) {
+            mStatusBarService = IStatusBarService.Stub.asInterface(
+                    ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        }
+        return mStatusBarService;
     }
 
     public void refreshCachedPackage(String packageName, boolean removedPackage) {
@@ -1492,10 +1503,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     protected void pinApp(int persistentTaskId) {
-        StatusBar statusBar =
-                SysUiServiceProvider.getComponent(mContext, StatusBar.class);
+        IStatusBarService statusBar = getStatusBarService();
         if (statusBar != null) {
-            statusBar.showScreenPinningRequest(persistentTaskId, false);
+            try {
+                statusBar.showScreenPinningRequest(persistentTaskId);
+            } catch (RemoteException e) {
+               e.printStackTrace();
+            }
             hideRecents(false);
         }
     }
