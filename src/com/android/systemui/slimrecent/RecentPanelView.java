@@ -476,7 +476,7 @@ public class RecentPanelView {
                 unwantedDrag = true; //restore the drag check
 
                 boolean wasDocked = false;
-                int dockSide = WindowManagerProxy.getInstance().getDockSide();
+                int dockSide = 0; // TODO WindowManagerProxy.getInstance().getDockSide();
                 if (dockSide != WindowManager.DOCKED_INVALID) {
                     wasDocked = true;
                 }

@@ -99,7 +99,6 @@ import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.SysUiServiceProvider;
 import com.android.systemui.statusbar.phone.StatusBar;
 
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
@@ -215,7 +214,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     public RecentController() {
     }
 
-    public void onStart(Context context, SysUiServiceProvider sysUiServiceProvider) {
+    public void onStart(Context context) {
         mContext = context;
         mLayoutDirection = getLayoutDirection();
         mScaleFactor = Settings.System.getIntForUser(
@@ -1492,12 +1491,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     protected void pinApp(int persistentTaskId) {
+        /* TODO
         StatusBar statusBar =
                 SysUiServiceProvider.getComponent(mContext, StatusBar.class);
         if (statusBar != null) {
             statusBar.showScreenPinningRequest(persistentTaskId, false);
             hideRecents(false);
         }
+        */
     }
 
     protected static boolean killAppLongClick(Context context,
