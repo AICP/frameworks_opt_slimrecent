@@ -139,7 +139,6 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                         | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
                 ,
                 PixelFormat.TRANSLUCENT);
-        lp.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_SHOW_FOR_ALL_USERS;
         lp.setTitle("ScreenPinningConfirmation");
         lp.gravity = Gravity.FILL;
         return lp;

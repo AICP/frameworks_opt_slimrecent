@@ -475,16 +475,10 @@ public class RecentPanelView {
 
                 unwantedDrag = true; //restore the drag check
 
-                boolean wasDocked = false;
-                int dockSide = WindowManagerProxy.getInstance().getDockSide();
-                if (dockSide != WindowManager.DOCKED_INVALID) {
-                    wasDocked = true;
-                }
-
                 ActivityOptions options =
                         ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
                 Handler mHandler = new Handler();
-                mHandler.postDelayed(new Runnable() {
+                mHandler.post(new Runnable() {
                     public void run() {
                         try {
                             card = (RecentCard) mCardAdapter.getCard(finalPos);
@@ -505,7 +499,7 @@ public class RecentPanelView {
                     }
                 /*if we disabled a running multiwindow mode, just wait a little bit
                 before docking the new apps*/
-                }, wasDocked ? 100 : 0);
+                });
 
                 // Hide card options after using multiwindow button as drag handle
                 if (mCurrentDraggingView != null) {
