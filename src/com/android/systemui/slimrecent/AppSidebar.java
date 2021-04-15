@@ -460,8 +460,11 @@ public class AppSidebar extends FrameLayout {
     private boolean systemUiVisibilityChanged(int visibility) {
         if (mSystemUiVisibility != visibility) {
             mSystemUiVisibility = visibility;
-            // Only return true if this affects our layout
-            if (getVisibleHeight(null) != mVisibleHeight) {
+            return true;
+        } else {
+            // Check if display height changed, which also requires a layout update
+            Rect r = new Rect();
+            if (getVisibleHeight(r) != mVisibleHeight) {
                 return true;
             }
         }
@@ -487,8 +490,8 @@ public class AppSidebar extends FrameLayout {
 
         // Layout items
         Rect r = new Rect();
-        int windowHeight = getVisibleHeight(r);
-        int statusBarHeight = r.top;
+        final int windowHeight = getVisibleHeight(r);
+        final int statusBarHeight = r.top;
         if (mScrollView != null)
             removeView(mScrollView);
 
