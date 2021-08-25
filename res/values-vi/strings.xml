@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">履歴を表示するにはロック解除して下さい</string>
-    <string name="slim_recent_pinned">履歴を表示するには画面の固定を解除して下さい</string>
-    <string name="toast_recents_queue_app">履歴を閉じた後%sを起動します</string>
-    <string name="toast_recents_cancel_queued_app">アプリの起動を中止しました</string>
-    <string name="slim_recents_free_ram">RAM: %1$d MB 空き</string>
+    <string name="slim_recent_keyguard">Mở khóa điện thoại của bạn để xem ứng dụng gần đây</string>
+    <string name="slim_recent_pinned">Bỏ ghim vào màn hình để xem các ứng dụng gần đây</string>
+    <string name="toast_recents_queue_app">Mở %s sau khi đóng các ứng dụng gần đây</string>
+    <string name="toast_recents_cancel_queued_app">Đã hủy mở ứng dụng</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB trống</string>
 </resources>

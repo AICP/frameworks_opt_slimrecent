@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">履歴を表示するにはロック解除して下さい</string>
-    <string name="slim_recent_pinned">履歴を表示するには画面の固定を解除して下さい</string>
-    <string name="toast_recents_queue_app">履歴を閉じた後%sを起動します</string>
-    <string name="toast_recents_cancel_queued_app">アプリの起動を中止しました</string>
-    <string name="slim_recents_free_ram">RAM: %1$d MB 空き</string>
+    <string name="slim_recent_keyguard">Ξεκλειδώσετε τη συσκευή σας για να δείτε τα πρόσφατα</string>
+    <string name="slim_recent_pinned">Ξεκαρφίτσωμα της οθόνης για προβολή προσφάτων</string>
+    <string name="toast_recents_queue_app">Έναρξη %s μετά το κλείσιμο των recents</string>
+    <string name="toast_recents_cancel_queued_app">Ακυρώθηκε η έναρξη εφαρμογής</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB ελεύθερα</string>
 </resources>

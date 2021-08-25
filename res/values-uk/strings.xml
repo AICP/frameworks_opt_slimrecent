@@ -18,6 +18,8 @@
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="slim_recent_keyguard">Розблокуйте пристрій для перегляду нещодавніх додатків</string>
+    <string name="slim_recent_pinned">Відкріпити екран, щоб переглянути список недавніх додатків</string>
+    <string name="toast_recents_queue_app">Запустити %s після закриття нещодавніх</string>
     <string name="toast_recents_cancel_queued_app">Скасовано запуск додатка</string>
     <string name="slim_recents_free_ram">RAM: %1$d MB вільно</string>
 </resources>
