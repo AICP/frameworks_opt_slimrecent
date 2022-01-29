@@ -22,6 +22,7 @@ package com.android.systemui.slimrecent;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
+import android.app.ActivityTaskManager;
 import android.app.IActivityManager;
 import android.app.TaskStackBuilder;
 //import android.content.ActivityNotFoundException;
@@ -63,6 +64,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.window.TaskSnapshot;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -76,7 +78,7 @@ import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.stackdivider.WindowManagerProxy;
+import com.android.wm.shell.legacysplitscreen.WindowManagerProxy;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -1413,7 +1415,7 @@ public class RecentPanelView {
             // from the Recents and PiP stacks
             for (int i = 0; i < tasks.size(); i++) {
                 ActivityManager.RunningTaskInfo task = tasks.get(i);
-                int stackId = task.stackId;
+                int stackId = task.id;
                 return task;
             }
         }
@@ -1464,10 +1466,10 @@ public class RecentPanelView {
 
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         try {
-            ActivityManager.TaskSnapshot snapshot = ActivityManager.getService()
+            TaskSnapshot snapshot = ActivityTaskManager.getService()
                     .getTaskSnapshot(taskId, reducedResolution);
             if (snapshot != null) {
-                return Bitmap.wrapHardwareBuffer(snapshot.getSnapshot(), snapshot.getColorSpace());
+                return Bitmap.wrapHardwareBuffer(snapshot.getHardwareBuffer(), snapshot.getColorSpace());
             }
         } catch (RemoteException e) {
             Log.w(TAG, "Failed to retrieve snapshot", e);
