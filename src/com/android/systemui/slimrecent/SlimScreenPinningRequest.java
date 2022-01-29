@@ -47,7 +47,7 @@ import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.shared.system.WindowManagerWrapper;
-import com.android.systemui.statusbar.phone.NavigationModeController;
+import com.android.systemui.navigationbar.NavigationModeController;
 
 import com.android.systemui.recents.Recents;
 //import com.android.systemui.statusbar.phone.SlimNavigationBarView;

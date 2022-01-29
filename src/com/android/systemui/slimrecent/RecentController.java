@@ -103,6 +103,7 @@ import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.icons.IconsHandler;
 import com.android.systemui.statusbar.phone.StatusBar;
+import com.android.wm.shell.legacysplitscreen.LegacySplitScreen;
 
 import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
 
@@ -515,7 +516,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     }
 
-    @Override
     public boolean splitPrimaryTask(int stackCreateMode, Rect initialBounds,
                                     int metricsDockAction) {
         /* TODO
