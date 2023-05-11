@@ -491,7 +491,9 @@ public class AppSidebar extends FrameLayout {
         // Layout items
         Rect r = new Rect();
         final int windowHeight = getVisibleHeight(r);
-        final int statusBarHeight = r.top;
+        // TODO: statusBarHeight needs to be accounted for *if* this is shown behind the status bar... which it currently isn't?
+        // => once it is, re-enable r.top instead of 0 here!
+        final int statusBarHeight = 0; //r.top;
         if (mScrollView != null)
             removeView(mScrollView);
 

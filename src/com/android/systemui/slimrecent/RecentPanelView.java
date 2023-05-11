@@ -74,11 +74,9 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
-import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.wm.shell.legacysplitscreen.WindowManagerProxy;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -278,6 +276,7 @@ public class RecentPanelView {
                     }
                 }
             };
+            /* TODO re-enable once slim can do native split screen handling again
             View.OnTouchListener touchListener = new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -290,6 +289,7 @@ public class RecentPanelView {
                     return false;
                 }
             };
+            */
 
             clearOptions();
             addOption(new OptionsItem(
@@ -301,7 +301,7 @@ public class RecentPanelView {
             }*/
             addOption(new OptionsItem(
                     mContext.getDrawable(R.drawable.ic_multiwindow), OPTION_MULTIWINDOW, listener)
-                            .setTouchListener(touchListener));
+                            /*.setTouchListener(touchListener)*/);
             addOption(new OptionsItem(
                     mContext.getDrawable(R.drawable.ic_kill_app), OPTION_KILL, listener));
             addOption(new OptionsItem(
@@ -477,18 +477,20 @@ public class RecentPanelView {
 
                 unwantedDrag = true; //restore the drag check
 
-                ActivityOptions options =
-                        ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
+                ActivityOptions options = ActivityOptions.makeBasic();
+                        // TODO ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
                 Handler mHandler = new Handler();
                 mHandler.post(new Runnable() {
                     public void run() {
+                        mController.launchFallbackSplitScreenRecents();
+                        /*
                         try {
                             card = (RecentCard) mCardAdapter.getCard(finalPos);
                             int newTaskid = card.task.persistentTaskId;
                             mIam.startActivityFromRecents((finalPos > initPos)
                                     ? taskid : newTaskid, options.toBundle());
                             /*after we docked our main app, on the other side of the screen we
-                            open the app we dragged the main app over*/
+                            open the app we dragged the main app over*//*
                             try {
                                 mIam.startActivityFromRecents(((finalPos > initPos)
                                         ? newTaskid : taskid),
@@ -498,6 +500,7 @@ public class RecentPanelView {
                             // top and bottom apps
                             mController.closeRecents();
                         } catch (Exception e) {}
+                        */
                     }
                 /*if we disabled a running multiwindow mode, just wait a little bit
                 before docking the new apps*/
@@ -1467,7 +1470,7 @@ public class RecentPanelView {
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         try {
             TaskSnapshot snapshot = ActivityTaskManager.getService()
-                    .getTaskSnapshot(taskId, reducedResolution);
+                    .getTaskSnapshot(taskId, reducedResolution, true);
             if (snapshot != null) {
                 return Bitmap.wrapHardwareBuffer(snapshot.getHardwareBuffer(), snapshot.getColorSpace());
             }
