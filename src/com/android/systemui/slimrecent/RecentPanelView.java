@@ -74,11 +74,9 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
-import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.wm.shell.legacysplitscreen.WindowManagerProxy;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -477,8 +475,8 @@ public class RecentPanelView {
 
                 unwantedDrag = true; //restore the drag check
 
-                ActivityOptions options =
-                        ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
+                ActivityOptions options = ActivityOptions.makeBasic();
+                        // TODO ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
                 Handler mHandler = new Handler();
                 mHandler.post(new Runnable() {
                     public void run() {
@@ -1467,7 +1465,7 @@ public class RecentPanelView {
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         try {
             TaskSnapshot snapshot = ActivityTaskManager.getService()
-                    .getTaskSnapshot(taskId, reducedResolution);
+                    .getTaskSnapshot(taskId, reducedResolution, true);
             if (snapshot != null) {
                 return Bitmap.wrapHardwareBuffer(snapshot.getHardwareBuffer(), snapshot.getColorSpace());
             }
