@@ -29,4 +29,7 @@
     <!-- Slim recents membar -->
     <string name="slim_recents_free_ram">RAM: %1$d MB free</string>
 
+    <!-- TMP no native splitscreen (Note: toast shouldn't be too long to avoid elipsizing) -->
+    <string name="slim_no_native_splitscreen_yet">Use AOSP recents to control splitscreen</string>
+
 </resources>

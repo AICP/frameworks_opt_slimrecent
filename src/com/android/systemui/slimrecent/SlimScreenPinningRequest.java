@@ -17,6 +17,8 @@
 
 package com.android.systemui.slimrecent;
 
+import static android.view.Display.DEFAULT_DISPLAY;
+
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
@@ -31,11 +33,14 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.WindowManagerGlobal;
 import android.view.accessibility.AccessibilityManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
@@ -46,7 +51,6 @@ import android.widget.TextView;
 import com.android.systemui.Dependency;
 import com.android.systemui.R;
 import com.android.systemui.shared.system.QuickStepContract;
-import com.android.systemui.shared.system.WindowManagerWrapper;
 import com.android.systemui.navigationbar.NavigationModeController;
 
 import com.android.systemui.recents.Recents;
@@ -58,6 +62,7 @@ import java.util.ArrayList;
 
 public class SlimScreenPinningRequest implements View.OnClickListener,
         NavigationModeController.ModeChangedListener {
+    private static final String TAG = "SlimScreenPinningRequest";
 
     private final Context mContext;
     //private SlimNavigationBarView mSlimNavigationBarView = null;
@@ -245,9 +250,8 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
             mLayout.findViewById(R.id.screen_pinning_text_area)
                     .setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
             View buttons = mLayout.findViewById(R.id.screen_pinning_buttons);
-            WindowManagerWrapper wm = WindowManagerWrapper.getInstance();
             if (!QuickStepContract.isGesturalMode(mNavBarMode)
-                        && wm.hasSoftNavigationBar(mContext.getDisplayId())) {
+                        && hasSoftNavigationBar(mContext, mContext.getDisplayId())) {
                 buttons.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
                 swapChildrenIfRtlAndVertical(buttons);
             } else {
@@ -294,6 +298,26 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                 UserHandle.USER_CURRENT);
         }
         */
+
+        /**
+         * @param displayId the id of display to check if there is a software navigation bar.
+         *
+         * @return whether there is a soft nav bar on specific display.
+         */
+        private boolean hasSoftNavigationBar(Context context, int displayId) {
+            if (displayId == DEFAULT_DISPLAY &&
+                    Settings.System.getIntForUser(context.getContentResolver(),
+                            Settings.System.NAVIGATION_BAR_SHOW, 0,
+                            UserHandle.USER_CURRENT) == 1) {
+                return true;
+            }
+            try {
+                return WindowManagerGlobal.getWindowManagerService().hasNavigationBar(displayId);
+            } catch (RemoteException e) {
+                Log.e(TAG, "Failed to check soft navigation bar", e);
+                return false;
+            }
+        }
 
         private void swapChildrenIfRtlAndVertical(View group) {
             if (mContext.getResources().getConfiguration().getLayoutDirection()
