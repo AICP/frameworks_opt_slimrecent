@@ -100,12 +100,7 @@ import com.android.systemui.R;
 import com.android.systemui.recents.RecentsImplementation;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
-import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.statusbar.phone.StatusBar;
-import com.android.wm.shell.legacysplitscreen.LegacySplitScreen;
-
-import static com.android.systemui.statusbar.phone.StatusBar.SYSTEM_DIALOG_REASON_RECENT_APPS;
 
 import com.aicp.gear.util.ImageHelper;
 
@@ -123,6 +118,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         RecentPanelView.OnTasksLoadedListener, RecentsImplementation {
 
     private static final String TAG = "SlimRecentsController";
+
+    static final String SYSTEM_DIALOG_REASON_RECENT_APPS = "recentapps";
 
     // Animation control values.
     private static final int ANIMATION_STATE_NONE = 0;
@@ -552,11 +549,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
     }
 
     protected void startTaskinMultiWindow(int id) {
+        /* TODO
         final ActivityOptions options =
-                ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
+                ActivityOptionsCompat.makeSplitScreenOptions(true*//*dockTopLeft*//*);
         if (ActivityManagerWrapper.getInstance().startActivityFromRecents(id, options)) {
             openLastApptoBottom();
         }
+       */
    }
 
     private void openLastApptoBottom() {

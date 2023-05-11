@@ -74,11 +74,9 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import com.android.systemui.R;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
-import com.android.systemui.shared.system.ActivityOptionsCompat;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.OptionsItem;
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.wm.shell.legacysplitscreen.WindowManagerProxy;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -477,8 +475,9 @@ public class RecentPanelView {
 
                 unwantedDrag = true; //restore the drag check
 
+                /* TODO
                 ActivityOptions options =
-                        ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
+                        ActivityOptionsCompat.makeSplitScreenOptions(true*//*dockTopLeft*//*);
                 Handler mHandler = new Handler();
                 mHandler.post(new Runnable() {
                     public void run() {
@@ -487,8 +486,8 @@ public class RecentPanelView {
                             int newTaskid = card.task.persistentTaskId;
                             mIam.startActivityFromRecents((finalPos > initPos)
                                     ? taskid : newTaskid, options.toBundle());
-                            /*after we docked our main app, on the other side of the screen we
-                            open the app we dragged the main app over*/
+                            *//*after we docked our main app, on the other side of the screen we
+                            open the app we dragged the main app over*//*
                             try {
                                 mIam.startActivityFromRecents(((finalPos > initPos)
                                         ? newTaskid : taskid),
@@ -500,8 +499,9 @@ public class RecentPanelView {
                         } catch (Exception e) {}
                     }
                 /*if we disabled a running multiwindow mode, just wait a little bit
-                before docking the new apps*/
+                before docking the new apps*//*
                 });
+                */
 
                 // Hide card options after using multiwindow button as drag handle
                 if (mCurrentDraggingView != null) {
@@ -1467,7 +1467,7 @@ public class RecentPanelView {
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         try {
             TaskSnapshot snapshot = ActivityTaskManager.getService()
-                    .getTaskSnapshot(taskId, reducedResolution);
+                    .getTaskSnapshot(taskId, reducedResolution, true);
             if (snapshot != null) {
                 return Bitmap.wrapHardwareBuffer(snapshot.getHardwareBuffer(), snapshot.getColorSpace());
             }
