@@ -34,17 +34,17 @@ public abstract class UserContentObserver extends ContentObserver {
 
     private IUserSwitchObserver mUserSwitchObserver = new IUserSwitchObserver.Stub() {
         @Override
-        public void onUserSwitching(int newUserId, IRemoteCallback reply) {
-        }
+        public void onUserSwitching(int newUserId, IRemoteCallback reply) {}
         @Override
         public void onUserSwitchComplete(int newUserId) throws RemoteException {
             mHandler.post(mUpdateRunnable);
         }
         @Override
-        public void onForegroundProfileSwitch(int newProfileId) {
-        }
+        public void onForegroundProfileSwitch(int newProfileId) {}
         @Override
         public void onLockedBootComplete(int newUserId) throws RemoteException {}
+        @Override
+        public void onBeforeUserSwitching(int newUser) {}
     };
 
     private Handler mHandler;
