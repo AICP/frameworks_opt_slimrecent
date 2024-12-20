@@ -71,7 +71,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
-import com.android.systemui.R;
+import com.android.systemui.res.R;
 import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
@@ -1470,7 +1470,7 @@ public class RecentPanelView {
     public static Bitmap getThumbnail(int taskId, boolean reducedResolution, Context context) {
         try {
             TaskSnapshot snapshot = ActivityTaskManager.getService()
-                    .getTaskSnapshot(taskId, reducedResolution, true);
+                    .getTaskSnapshot(taskId, reducedResolution);
             if (snapshot != null) {
                 return Bitmap.wrapHardwareBuffer(snapshot.getHardwareBuffer(), snapshot.getColorSpace());
             }

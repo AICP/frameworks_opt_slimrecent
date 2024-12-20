@@ -97,7 +97,7 @@ import java.util.Locale;
 
 import com.android.internal.statusbar.IStatusBarService;
 
-import com.android.systemui.R;
+import com.android.systemui.res.R;
 import com.android.systemui.recents.RecentsImplementation;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;

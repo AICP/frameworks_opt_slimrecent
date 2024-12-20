@@ -49,7 +49,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.systemui.Dependency;
-import com.android.systemui.R;
+import com.android.systemui.res.R;
 import com.android.systemui.shared.system.QuickStepContract;
 import com.android.systemui.navigationbar.NavigationModeController;
 
@@ -305,12 +305,14 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
          * @return whether there is a soft nav bar on specific display.
          */
         private boolean hasSoftNavigationBar(Context context, int displayId) {
+            /* TODO re-enable?
             if (displayId == DEFAULT_DISPLAY &&
                     Settings.System.getIntForUser(context.getContentResolver(),
                             Settings.System.NAVIGATION_BAR_SHOW, 0,
                             UserHandle.USER_CURRENT) == 1) {
                 return true;
             }
+            */
             try {
                 return WindowManagerGlobal.getWindowManagerService().hasNavigationBar(displayId);
             } catch (RemoteException e) {
