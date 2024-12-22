@@ -745,7 +745,7 @@ public class RecentPanelView {
         }
         if (info != null) {
             String title = td.getLabel();
-            if (title == null) {
+            if (title == null || title.length() == 0) {
                 title = info.loadLabel(mPm).toString();
             }
 
