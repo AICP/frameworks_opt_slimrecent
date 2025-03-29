@@ -44,7 +44,7 @@ public abstract class UserContentObserver extends ContentObserver {
         @Override
         public void onLockedBootComplete(int newUserId) throws RemoteException {}
         @Override
-        public void onBeforeUserSwitching(int newUser) {}
+        public void onBeforeUserSwitching(int newUser, IRemoteCallback reply) {}
     };
 
     private Handler mHandler;
