@@ -30,7 +30,7 @@ import android.graphics.drawable.PaintDrawable;
 import android.os.Process;
 import android.os.UserHandle;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 /**
  * Helper methods for generating various launcher icons

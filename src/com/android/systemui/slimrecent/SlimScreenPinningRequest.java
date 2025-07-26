@@ -48,19 +48,20 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.android.systemui.Dependency;
-import com.android.systemui.res.R;
+//import com.android.systemui.Dependency;
+import com.android.launcher3.R;
 import com.android.systemui.shared.system.QuickStepContract;
-import com.android.systemui.navigationbar.NavigationModeController;
+//import com.android.systemui.navigationbar.NavigationModeController;
 
-import com.android.systemui.recents.Recents;
+//import com.android.systemui.recents.Recents;
 //import com.android.systemui.statusbar.phone.SlimNavigationBarView;
 
 import java.util.ArrayList;
 
 //import slim.provider.SlimSettings;
 
-public class SlimScreenPinningRequest implements View.OnClickListener,
+/*
+public class SlimScreenPinningRequest implements View.OnClickListener//,
         NavigationModeController.ModeChangedListener {
     private static final String TAG = "SlimScreenPinningRequest";
 
@@ -82,25 +83,25 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                 mContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
         mWindowManager = (WindowManager)
                 mContext.getSystemService(Context.WINDOW_SERVICE);
-        mNavBarMode = Dependency.get(NavigationModeController.class).addListener(this);
+        //mNavBarMode = Dependency.get(NavigationModeController.class).addListener(this);
     }
 
-    /*
+    *//*
     public void setSlimNavigationBarView(SlimNavigationBarView navBar) {
         mSlimNavigationBarView = navBar;
     }
-    */
+    *//*
 
     public void clearPrompt() {
         if (mRequestWindow != null) {
             mWindowManager.removeView(mRequestWindow);
             mRequestWindow = null;
         }
-        /*
+        *//*
         if (mSlimNavigationBarView != null) {
             mSlimNavigationBarView.pressBackButton(false);
         }
-        */
+        *//*
     }
 
     public void showPrompt(int taskId, boolean allowCancel) {
@@ -258,7 +259,7 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                 buttons.setVisibility(View.GONE);
             }
 
-            /*
+            *//*
             if (mSlimNavigationBarView != null) {
                 //ViewGroup.LayoutParams lp = buttons.getLayoutParams();
                 //lp.height = getNavigationBarHeight();
@@ -267,7 +268,7 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                 buttons.setVisibility(View.GONE);
                 mSlimNavigationBarView.pressBackButton(true);
             }
-            */
+            *//*
 
             ((Button) mLayout.findViewById(R.id.screen_pinning_ok_button))
                     .setOnClickListener(SlimScreenPinningRequest.this);
@@ -289,7 +290,7 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
             addView(mLayout, getRequestLayoutParams(isLandscape));
         }
 
-        /*
+        *//*
         private int getNavigationBarHeight() {
             return SlimSettings.System.getIntForUser(mContext.getContentResolver(),
                 SlimSettings.System.NAVIGATION_BAR_HEIGHT,
@@ -297,22 +298,22 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
                         com.android.internal.R.dimen.navigation_bar_height),
                 UserHandle.USER_CURRENT);
         }
-        */
+        *//*
 
-        /**
+        *//**
          * @param displayId the id of display to check if there is a software navigation bar.
          *
          * @return whether there is a soft nav bar on specific display.
-         */
+         *//*
         private boolean hasSoftNavigationBar(Context context, int displayId) {
-            /* TODO re-enable?
+            *//* TODO re-enable?
             if (displayId == DEFAULT_DISPLAY &&
                     Settings.System.getIntForUser(context.getContentResolver(),
                             Settings.System.NAVIGATION_BAR_SHOW, 0,
                             UserHandle.USER_CURRENT) == 1) {
                 return true;
             }
-            */
+            *//*
             try {
                 return WindowManagerGlobal.getWindowManagerService().hasNavigationBar(displayId);
             } catch (RemoteException e) {
@@ -372,3 +373,4 @@ public class SlimScreenPinningRequest implements View.OnClickListener,
         };
     }
 }
+*/

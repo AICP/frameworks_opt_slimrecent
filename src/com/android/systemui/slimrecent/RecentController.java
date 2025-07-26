@@ -97,8 +97,7 @@ import java.util.Locale;
 
 import com.android.internal.statusbar.IStatusBarService;
 
-import com.android.systemui.res.R;
-import com.android.systemui.recents.RecentsImplementation;
+import com.android.launcher3.R;
 import com.android.systemui.shared.recents.utilities.Utilities;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.slimrecent.icons.IconsHandler;
@@ -116,7 +115,7 @@ import com.aicp.gear.util.ImageHelper;
  * are handled here.
  */
 public class RecentController implements RecentPanelView.OnExitListener,
-        RecentPanelView.OnTasksLoadedListener, RecentsImplementation {
+        RecentPanelView.OnTasksLoadedListener {
 
     private static final String TAG = "SlimRecentsController";
 
@@ -198,7 +197,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     private ObjectAnimator mClearAllAnimation;
 
     // While slim recents doesn't support split screen, we may want to fallback to the other recents impl from time to time
-    private RecentsImplementation mFallbackRecents;
+    //private RecentsImplementation mFallbackRecents;
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -217,8 +216,8 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     };
 
-    public RecentController(RecentsImplementation fallbackRecents) {
-        mFallbackRecents = fallbackRecents;
+    public RecentController(/*RecentsImplementation fallbackRecents*/) {
+        //mFallbackRecents = fallbackRecents;
     }
 
     public void onStart(Context context) {
@@ -482,12 +481,16 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return TextUtils.getLayoutDirectionFromLocale(locale);
     }
 
-    @Override
-    public void toggleRecentApps() {
+    //@Override
+    public boolean toggleRecentApps() {
+        android.util.Log.i("SCSCSC-recents", "toggle");
         if (!mIsUserSetup) {
-            return;
+            return false;
         }
+        android.util.Log.i("SCSCSC-recents", "toggle-01");
         toggle();
+        android.util.Log.i("SCSCSC-recents", "toggle-02");
+        return true;
     }
 
     private void toggle() {
@@ -520,7 +523,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     public void launchFallbackSplitScreenRecents() {
         Toast.makeText(mContext, R.string.slim_no_native_splitscreen_yet, Toast.LENGTH_LONG).show();
-        mFallbackRecents.showRecentApps(false);
+        //mFallbackRecents.showRecentApps(false);
         closeRecents();
     }
 
@@ -683,7 +686,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     /**
      * External call. Preload recent tasks.
      */
-    @Override
+    //@Override
     public void preloadRecentApps() {
         if (!mIsUserSetup) {
             return;
@@ -703,7 +706,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     /**
      * External call. Cancel preload recent tasks.
      */
-    @Override
+    //@Override
     public void cancelPreloadRecentApps() {
         if (!mIsUserSetup) {
             return;
@@ -858,7 +861,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         mWaitingClearAllConfirmation = false;
     }
 
-    @Override
+    //@Override
     public void hideRecentApps(boolean triggeredFromAltTab, boolean triggeredFromHomeKey) {
         hideRecents(triggeredFromHomeKey);
     }
@@ -868,7 +871,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         if (!mIsUserSetup) {
             return false;
         }
-        mFallbackRecents.hideRecentApps(false, false);
+        //mFallbackRecents.hideRecentApps(false, false);
         if (isShowing()) {
             mIsPreloaded = false;
             mIsToggled = false;
@@ -896,7 +899,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
 
     // Show the recent window.
     private void showRecents() {
-        mFallbackRecents.hideRecentApps(false, false);
+        //mFallbackRecents.hideRecentApps(false, false);
         mIsShowing = true;
         cancelClearAllWaiting();
         sendCloseSystemWindows(SYSTEM_DIALOG_REASON_RECENT_APPS);
@@ -925,6 +928,14 @@ public class RecentController implements RecentPanelView.OnExitListener,
             mRecentContainer.setVisibility(View.GONE);
             mKeyguardView.setVisibility(View.VISIBLE);
         }
+    }
+
+    public boolean showRecentApps() {
+        if (!mIsUserSetup) {
+            return false;
+        }
+        showRecents();
+        return true;
     }
 
     protected static void sendCloseSystemWindows(String reason) {
@@ -974,70 +985,70 @@ public class RecentController implements RecentPanelView.OnExitListener,
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_GRAVITY),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_SCALE_FACTOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_EXPANDED_MODE),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_BG_COLOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENT_AICP_EMPTY_DRAWABLE),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.USE_RECENT_APP_SIDEBAR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_CONTENT),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_SCALE_FACTOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_APP_SIDEBAR_OPEN_SIMULTANEOUSLY),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_MEM_DISPLAY),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_MEM_DISPLAY_LONG_CLICK_CLEAR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_CARD_BG_COLOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_ICON_PACK),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.LOCK_TO_APP_ENABLED),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENTS_MAX_APPS),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_MEM_BAR_COLOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_MEM_TEXT_COLOR),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_CORNER_RADIUS),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.Global.getUriFor(
                     Settings.Global.DEVICE_PROVISIONED),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.USER_SETUP_COMPLETE),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENTS_BLACKLIST_VALUES),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.SLIM_RECENT_ENTER_EXIT_ANIMATION),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             update(true);
         }
 
@@ -1181,7 +1192,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.RECENT_PANEL_FAVORITES),
-                    false, this, UserHandle.USER_ALL);
+                    false, this, UserHandle.USER_CURRENT);
             update(true);
         }
 
@@ -1200,7 +1211,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return (LinearLayoutManager) mLayoutManager;
     }
 
-    @Override
+    //@Override
     public void onConfigurationChanged(Configuration newConfig) {
         if (mConfiguration.densityDpi != newConfig.densityDpi) {
             hideRecents(true);
