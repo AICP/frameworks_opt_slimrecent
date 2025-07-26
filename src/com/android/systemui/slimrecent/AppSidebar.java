@@ -44,7 +44,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 
 import com.android.systemui.slimrecent.icons.IconsHandler;
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 import java.util.ArrayList;
 

@@ -44,7 +44,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 public class ExpandableCardAdapter extends RecyclerView.Adapter<ExpandableCardAdapter.ViewHolder> {
 

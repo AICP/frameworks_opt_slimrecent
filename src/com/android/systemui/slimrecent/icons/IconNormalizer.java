@@ -38,7 +38,7 @@ import java.util.Random;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 public class IconNormalizer {
 

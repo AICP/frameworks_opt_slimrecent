@@ -30,7 +30,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 /**
  * Thanks to a google post from Jorim Jaggy I saw
