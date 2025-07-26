@@ -28,7 +28,7 @@ import android.graphics.RectF;
 
 import androidx.core.graphics.ColorUtils;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 /**
  * Utility class to add shadows to bitmaps.

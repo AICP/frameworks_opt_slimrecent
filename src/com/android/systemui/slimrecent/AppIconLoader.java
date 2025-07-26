@@ -28,7 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Process;
 
-import com.android.systemui.res.R;
+import com.android.launcher3.R;
 
 import java.lang.ref.WeakReference;
 
