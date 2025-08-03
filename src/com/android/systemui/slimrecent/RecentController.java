@@ -518,11 +518,13 @@ public class RecentController implements RecentPanelView.OnExitListener,
         }
     }
 
+    /*
     public void launchFallbackSplitScreenRecents() {
         Toast.makeText(mContext, R.string.slim_no_native_splitscreen_yet, Toast.LENGTH_LONG).show();
         //mFallbackRecents.showRecentApps(false);
         closeRecents();
     }
+    */
 
     /*
     public boolean splitPrimaryTask(int stackCreateMode, Rect initialBounds,
@@ -558,17 +560,6 @@ public class RecentController implements RecentPanelView.OnExitListener,
         return false;
     }
     */
-
-    protected void startTaskinMultiWindow(int id) {
-        launchFallbackSplitScreenRecents();
-        /*
-        final ActivityOptions options = ActivityOptions.makeBasic();
-                // TODO ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*//*);
-        if (ActivityManagerWrapper.getInstance().startActivityFromRecents(id, options)) {
-            openLastApptoBottom();
-        }
-        */
-   }
 
     private void openLastApptoBottom() {
 
