@@ -755,7 +755,9 @@ public class RecentController implements RecentPanelView.OnExitListener,
                 WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
                         | WindowManager.LayoutParams.FLAG_SPLIT_TOUCH
-                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                        | WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR,
                 PixelFormat.TRANSLUCENT);
         // Turn on hardware acceleration for high end gfx devices.
         if (ActivityManager.isHighEndGfx()) {
