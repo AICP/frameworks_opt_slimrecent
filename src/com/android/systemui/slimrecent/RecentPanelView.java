@@ -72,6 +72,10 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
 import com.android.launcher3.R;
+import static com.android.launcher3.util.SplitConfigurationOptions.STAGE_POSITION_TOP_OR_LEFT;
+import com.android.quickstep.SystemUiProxy;
+import static com.android.wm.shell.shared.split.SplitScreenConstants.SNAP_TO_2_50_50;
+
 //import com.android.systemui.recents.Recents;
 import com.android.systemui.shared.system.ActivityManagerWrapper;
 import com.android.systemui.slimrecent.ExpandableCardAdapter.ExpandableCard;
@@ -160,6 +164,7 @@ public class RecentPanelView {
     private PackageManager mPm;
     private ActivityManager mAm;
     private IActivityManager mIam;
+    private SystemUiProxy mSystemUiProxy;
 
     private IconsHandler mIconsHandler;
 
@@ -257,7 +262,7 @@ public class RecentPanelView {
                     /*} else if (id == OPTION_MARKET) {
                         intent = getStoreIntent();*/
                     } else if (id == OPTION_MULTIWINDOW) {
-                        mController.startTaskinMultiWindow(task.persistentTaskId);
+                        // TODO can we launch a single app split-screen?
                         return;
                     } else if (id == OPTION_KILL) {
                         if (RecentController.killAppLongClick(
@@ -276,7 +281,6 @@ public class RecentPanelView {
                     }
                 }
             };
-            /* TODO re-enable once slim can do native split screen handling again
             View.OnTouchListener touchListener = new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -289,7 +293,6 @@ public class RecentPanelView {
                     return false;
                 }
             };
-            */
 
             clearOptions();
             addOption(new OptionsItem(
@@ -301,7 +304,7 @@ public class RecentPanelView {
             }*/
             addOption(new OptionsItem(
                     mContext.getDrawable(R.drawable.ic_multiwindow), OPTION_MULTIWINDOW, listener)
-                            /*.setTouchListener(touchListener)*/);
+                            .setTouchListener(touchListener));
             addOption(new OptionsItem(
                     mContext.getDrawable(R.drawable.ic_kill_app), OPTION_KILL, listener));
             addOption(new OptionsItem(
@@ -390,6 +393,7 @@ public class RecentPanelView {
         mAm = (ActivityManager)
                 context.getSystemService(Context.ACTIVITY_SERVICE);
         mIam = ActivityManagerNative.getDefault();
+        mSystemUiProxy = SystemUiProxy.INSTANCE.get(context.getApplicationContext());
         mRes = context.getResources();
         mFirstExpandedItems =
                 mRes.getInteger(R.integer.expanded_items_default);
@@ -476,31 +480,31 @@ public class RecentPanelView {
                 }
 
                 unwantedDrag = true; //restore the drag check
+                unwantedDrag = true; //restore the drag check
 
                 ActivityOptions options = ActivityOptions.makeBasic();
-                        // TODO ActivityOptionsCompat.makeSplitScreenOptions(true/*dockTopLeft*/);
                 Handler mHandler = new Handler();
                 mHandler.post(new Runnable() {
                     public void run() {
-                        mController.launchFallbackSplitScreenRecents();
-                        /*
                         try {
                             card = (RecentCard) mCardAdapter.getCard(finalPos);
                             int newTaskid = card.task.persistentTaskId;
-                            mIam.startActivityFromRecents((finalPos > initPos)
-                                    ? taskid : newTaskid, options.toBundle());
-                            /*after we docked our main app, on the other side of the screen we
-                            open the app we dragged the main app over*//*
-                            try {
-                                mIam.startActivityFromRecents(((finalPos > initPos)
-                                        ? newTaskid : taskid),
-                                        RecentController.getAnimation(mContext).toBundle());
-                            } catch (RemoteException e) {}
+
+                            mSystemUiProxy.startTasks(
+                                    (finalPos > initPos) ? taskid : newTaskid,
+                                    options.toBundle(),
+                                    (finalPos > initPos) ? newTaskid : taskid,
+                                    RecentController.getAnimation(mContext).toBundle(),
+                                    STAGE_POSITION_TOP_OR_LEFT, // TODO?
+                                    SNAP_TO_2_50_50,
+                                    null, // TODO?
+                                    null // TODO?
+                            );
+
                             // No need to keep the panel open, we already chose both
                             // top and bottom apps
                             mController.closeRecents();
                         } catch (Exception e) {}
-                        */
                     }
                 /*if we disabled a running multiwindow mode, just wait a little bit
                 before docking the new apps*/
