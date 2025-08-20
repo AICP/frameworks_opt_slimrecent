@@ -632,7 +632,7 @@ public class RecentController implements RecentPanelView.OnExitListener,
     protected void startApplication(TaskDescription td) {
         // Starting app is requested by the user.
         // Move it to foreground or start it with custom animation.
-        if (false && td.taskId >= 0) {
+        if (td.taskId >= 0) {
             // This is an active task; it should just go to the foreground.
             mAm.moveTaskToFront(td.taskId, ActivityManager.MOVE_TASK_WITH_HOME,
                     getAnimation(mContext).toBundle());
