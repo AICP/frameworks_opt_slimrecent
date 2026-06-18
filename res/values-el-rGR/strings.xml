@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Ξεκλειδώσετε τη συσκευή σας για να δείτε τα πρόσφατα</string>
+    <string name="slim_recent_pinned">Ξεκαρφίτσωμα της οθόνης για προβολή προσφάτων</string>
+    <string name="toast_recents_queue_app">Έναρξη %s μετά το κλείσιμο των recents</string>
+    <string name="toast_recents_cancel_queued_app">Ακυρώθηκε η έναρξη εφαρμογής</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB ελεύθερα</string>
 </resources>

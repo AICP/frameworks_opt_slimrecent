@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Mở khóa điện thoại của bạn để xem ứng dụng gần đây</string>
+    <string name="slim_recent_pinned">Bỏ ghim vào màn hình để xem các ứng dụng gần đây</string>
+    <string name="toast_recents_queue_app">Mở %s sau khi đóng các ứng dụng gần đây</string>
+    <string name="toast_recents_cancel_queued_app">Đã hủy mở ứng dụng</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB trống</string>
 </resources>

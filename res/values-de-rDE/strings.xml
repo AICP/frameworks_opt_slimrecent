@@ -17,9 +17,10 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Gerät entsperren, um den Verlauf anzuzeigen</string>
+    <string name="slim_recent_pinned">Ansicht entkoppeln, um den Verlauf anzuzeigen</string>
+    <string name="toast_recents_queue_app">Starte %s nachdem der Verlauf geschlossen wurde</string>
+    <string name="toast_recents_cancel_queued_app">App-Start abgebrochen</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB frei</string>
+    <string name="slim_no_native_splitscreen_yet">Den AOSP Verlauf verwenden, um den Splitscreen zu steuern</string>
 </resources>

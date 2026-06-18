@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Odomknúť zariadenie pre zobrazenie nedávných aplikácií</string>
+    <string name="slim_recent_pinned">Odpojiť obrazovku pre zobrazenie nedávnych aplikácií</string>
+    <string name="toast_recents_queue_app">Spustiť %s po zatvorení nedávnych</string>
+    <string name="toast_recents_cancel_queued_app">Zrušiť spúšťanie aplikácií</string>
+    <string name="slim_recents_free_ram">Voľná pamäť RAM: %1$d MB</string>
 </resources>

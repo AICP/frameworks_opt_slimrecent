@@ -17,9 +17,10 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Buka kunci perangkat anda untuk melihat recent</string>
+    <string name="slim_recent_pinned">Lepas sematan layar untuk melihat recent</string>
+    <string name="toast_recents_queue_app">Jalankan %s setelah keluar dari recent</string>
+    <string name="toast_recents_cancel_queued_app">Menjalankan aplikasi dibatalkan</string>
+    <string name="slim_recents_free_ram">RAM: %1$d MB bebas</string>
+    <string name="slim_no_native_splitscreen_yet">Gunakan recent AOSP untuk mengontrol layar terpisah</string>
 </resources>

@@ -17,9 +17,9 @@
  */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="slim_recent_keyguard">Lås opp enheten for å se siste</string>
-    <string name="slim_recent_pinned">Løsne skjermen for å se siste</string>
-    <string name="toast_recents_queue_app">Start %s etter siste avsluttede</string>
-    <string name="toast_recents_cancel_queued_app">Avbrutt app start</string>
-    <string name="slim_recents_free_ram">Minne: %1$d MB ledig</string>
+    <string name="slim_recent_keyguard">Ontgrendel je apparaat om recente apps te bekijken</string>
+    <string name="slim_recent_pinned">Scherm losmaken om recente apps te zien</string>
+    <string name="toast_recents_queue_app">Start %s na het sluiten van recente apps</string>
+    <string name="toast_recents_cancel_queued_app">Opstarten van app geannuleerd</string>
+    <string name="slim_recents_free_ram">RAM-geheugen: %1$d MB vrij</string>
 </resources>
